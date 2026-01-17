@@ -200,22 +200,24 @@ SL-10 RU — Общий доступ к спискам
 - Приглашение по email.
 - Принятие приглашения.
 - Добавление пользователя в members.
+- Firestore listeners.
+- Синхронизация данных между пользователями.
 
 SL-10 EN — List sharing (invites)
 - Invite by email.
 - Accept invite.
 - Add user to list members.
+- Firestore listeners.
+- Sync data between users.
 
 --------------------------------------------------
 
 SL-11 Realtime sync
 SL-11 RU — Realtime синхронизация
-- Firestore listeners.
-- Синхронизация данных между пользователями.
+
 
 SL-11 EN — Realtime sync
-- Firestore listeners.
-- Sync data between users.
+
 
 --------------------------------------------------
 
