@@ -50,8 +50,12 @@ export default function InvitesScreen() {
         ListEmptyComponent={<Text style={styles.emptyText}>{t('invites.empty')}</Text>}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>{t('invites.list')}</Text>
-            <Text style={styles.cardMeta}>{item.listId}</Text>
+            <Text style={styles.cardTitle}>
+              {t('invites.list')} {item.listName || item.listId}
+            </Text>
+            <Text style={styles.cardMeta}>
+              {t('invites.from')} {item.fromEmailLower || item.fromUid}
+            </Text>
             <View style={styles.actions}>
               <TouchableOpacity style={styles.primaryButton} onPress={() => handleAccept(item)}>
                 <Text style={styles.primaryButtonText}>{t('invites.accept')}</Text>
