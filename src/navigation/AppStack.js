@@ -1,17 +1,15 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import ListsScreen from '../screens/Lists/ListsScreen.js';
+import AppTabs from './AppTabs.js';
 import ListDetailsScreen from '../screens/Lists/ListDetailsScreen.js';
-import InvitesScreen from '../screens/Invites/InvitesScreen.js';
 
 const Stack = createNativeStackNavigator();
 
 export default function AppStack() {
   return (
     <Stack.Navigator>
-      <Stack.Screen name="Lists" component={ListsScreen} />
+      <Stack.Screen name="Tabs" component={AppTabs} options={{ headerShown: false }} />
       <Stack.Screen name="ListDetails" component={ListDetailsScreen} />
-      <Stack.Screen name="Invites" component={InvitesScreen} />
     </Stack.Navigator>
   );
 }
