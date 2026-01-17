@@ -5,8 +5,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RootNavigator from './navigation/RootNavigator';
 
 const GH_PAGES_BASE = '/shopping-list';
-const isGhPages =
-  typeof window !== 'undefined' && window.location.pathname.startsWith(GH_PAGES_BASE);
+const isGhPagesHost =
+  typeof window !== 'undefined' && window.location.host.endsWith('github.io');
 
 const baseUrl = Linking.createURL('/');
 
@@ -27,15 +27,16 @@ const linking = {
     },
   },
   getStateFromPath: (path, options) => {
-    const cleanedPath = isGhPages && path.startsWith(GH_PAGES_BASE)
-      ? path.slice(GH_PAGES_BASE.length) || '/'
-      : path;
+    const cleanedPath =
+      isGhPagesHost && path.startsWith(GH_PAGES_BASE)
+        ? path.slice(GH_PAGES_BASE.length) || '/'
+        : path;
     return getStateFromPath(cleanedPath, options);
   },
   getPathFromState: (state, options) => {
     const rawPath = getPathFromState(state, options);
     const normalizedPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
-    return isGhPages ? `${GH_PAGES_BASE}${normalizedPath}` : normalizedPath;
+    return isGhPagesHost ? `${GH_PAGES_BASE}${normalizedPath}` : normalizedPath;
   },
 };
 
