@@ -325,6 +325,9 @@ SL-22 Добавить выбор языка
 SL-23 Добавить экраны Lists / Invites / Settings [DONE]
 SL-24 Сделать чтоб при вводе текста и ажатии enter элемент добавлялся в список [DONE]
 SL-25 Добавить дневную и ночную темы
+SL-26 Убрать Logout со страницы Lists
+SL-27 Убрать заголовки сверху, т.к. у нас есть экраны внизу
+SL-28 Пофиксить отступы внизу, т.к. обрезается текст на Settings странице
 
 ## Release Notes
 Web hosting planned for GitHub Pages after MVP. Mobile releases later via Expo/EAS.
