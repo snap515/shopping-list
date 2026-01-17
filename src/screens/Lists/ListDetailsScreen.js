@@ -3,6 +3,7 @@ import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'r
 import { auth } from '../../lib/firebase';
 import {
   addListItem,
+  createInvite,
   deleteListItem,
   subscribeToListItems,
   toggleListItem,
@@ -13,6 +14,7 @@ export default function ListDetailsScreen({ route }) {
   const { listId } = route.params || {};
   const [items, setItems] = useState([]);
   const [itemText, setItemText] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -75,9 +77,42 @@ export default function ListDetailsScreen({ route }) {
     }
   };
 
+  const handleInvite = async () => {
+    const trimmedEmail = inviteEmail.trim();
+    if (!trimmedEmail) {
+      setError(t('invites.create.empty'));
+      return;
+    }
+
+    setError('');
+    try {
+      await createInvite({
+        listId,
+        fromUid: auth.currentUser?.uid || 'unknown',
+        toEmail: trimmedEmail,
+      });
+      setInviteEmail('');
+    } catch (inviteError) {
+      setError(t('invites.create.error'));
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('listDetails.title')}</Text>
+      <View style={styles.inviteRow}>
+        <TextInput
+          placeholder={t('invites.create.placeholder')}
+          style={styles.input}
+          value={inviteEmail}
+          onChangeText={setInviteEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
+        <TouchableOpacity style={styles.secondaryButton} onPress={handleInvite}>
+          <Text style={styles.secondaryButtonText}>{t('invites.create.submit')}</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.formRow}>
         <TextInput
           placeholder={t('items.add.placeholder')}
@@ -134,6 +169,12 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 12,
   },
+  inviteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
   input: {
     flex: 1,
     borderColor: '#d0d0d0',
@@ -150,6 +191,18 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  secondaryButton: {
+    borderColor: '#1f5eff',
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  secondaryButtonText: {
+    color: '#1f5eff',
     fontSize: 14,
     fontWeight: '600',
   },

@@ -1,5 +1,6 @@
 import {
   addDoc,
+  arrayUnion,
   collection,
   deleteDoc,
   doc,
@@ -8,6 +9,7 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  writeBatch,
   where,
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -47,6 +49,45 @@ export const renameList = (listId, name) =>
   updateDoc(doc(db, 'lists', listId), { name });
 
 export const deleteList = (listId) => deleteDoc(doc(db, 'lists', listId));
+
+export const createInvite = async ({ listId, fromUid, toEmail }) =>
+  addDoc(invitesCollection, {
+    listId,
+    fromUid,
+    toEmailLower: toEmail.toLowerCase(),
+    status: 'pending',
+    createdAt: serverTimestamp(),
+  });
+
+export const subscribeToIncomingInvites = (toEmailLower, onChange) => {
+  const invitesQuery = query(
+    invitesCollection,
+    where('toEmailLower', '==', toEmailLower),
+    where('status', '==', 'pending')
+  );
+
+  return onSnapshot(invitesQuery, (snapshot) => {
+    const invites = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }));
+    onChange(invites);
+  });
+};
+
+export const acceptInvite = async ({ inviteId, listId, userUid }) => {
+  const batch = writeBatch(db);
+  const inviteRef = doc(db, 'invites', inviteId);
+  const listRef = doc(db, 'lists', listId);
+
+  batch.update(inviteRef, { status: 'accepted' });
+  batch.update(listRef, { memberUids: arrayUnion(userUid) });
+
+  await batch.commit();
+};
+
+export const declineInvite = (inviteId) =>
+  updateDoc(doc(db, 'invites', inviteId), { status: 'declined' });
 
 export const subscribeToListItems = (listId, onChange) => {
   const itemsQuery = query(listItemsCollection(listId));

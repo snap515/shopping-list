@@ -20,6 +20,7 @@ export default function ListsScreen({ navigation }) {
   const [error, setError] = useState('');
   const [editingListId, setEditingListId] = useState(null);
   const [editingName, setEditingName] = useState('');
+  const userEmail = auth.currentUser?.email || t('auth.anonymous');
 
   useEffect(() => {
     const uid = auth.currentUser?.uid;
@@ -103,7 +104,20 @@ export default function ListsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('lists.title')}</Text>
+      <View style={styles.headerRow}>
+        <View>
+          <Text style={styles.title}>{t('lists.title')}</Text>
+          <Text style={styles.subtitle}>
+            {t('auth.signedInAs')} {userEmail}
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.invitesButton}
+          onPress={() => navigation.navigate('Invites')}
+        >
+          <Text style={styles.invitesButtonText}>{t('invites.title')}</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.formRow}>
         <TextInput
           placeholder={t('lists.create.placeholder')}
@@ -193,7 +207,28 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '600',
+  },
+  subtitle: {
+    color: '#666',
+    marginTop: 4,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
+  },
+  invitesButton: {
+    borderColor: '#1f5eff',
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  invitesButtonText: {
+    color: '#1f5eff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   formRow: {
     flexDirection: 'row',
