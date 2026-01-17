@@ -1,8 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { loginWithEmail } from '../../lib/auth';
 import { t } from '../../lib/i18n';
 
 export default function LoginScreen({ navigation }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleLogin = async () => {
+    setError('');
+    try {
+      await loginWithEmail(email.trim(), password);
+    } catch (loginError) {
+      setError(t('auth.login.error'));
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('auth.login.title')}</Text>
@@ -12,6 +26,8 @@ export default function LoginScreen({ navigation }) {
         keyboardType="email-address"
         placeholder={t('auth.email.placeholder')}
         style={styles.input}
+        value={email}
+        onChangeText={setEmail}
         textContentType="emailAddress"
       />
       <Text style={styles.label}>{t('auth.password.label')}</Text>
@@ -19,9 +35,12 @@ export default function LoginScreen({ navigation }) {
         placeholder={t('auth.password.placeholder')}
         secureTextEntry
         style={styles.input}
+        value={password}
+        onChangeText={setPassword}
         textContentType="password"
       />
-      <TouchableOpacity style={styles.primaryButton}>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
         <Text style={styles.primaryButtonText}>{t('auth.login.submit')}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
@@ -54,6 +73,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 12,
     paddingVertical: 10,
+  },
+  errorText: {
+    color: '#c0392b',
+    marginBottom: 8,
+    textAlign: 'center',
   },
   primaryButton: {
     backgroundColor: '#1f5eff',
