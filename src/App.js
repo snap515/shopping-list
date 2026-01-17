@@ -1,8 +1,12 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { getPathFromState, getStateFromPath, NavigationContainer } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RootNavigator from './navigation/RootNavigator';
+
+const GH_PAGES_BASE = '/shopping-list';
+const isGhPages =
+  typeof window !== 'undefined' && window.location.pathname.startsWith(GH_PAGES_BASE);
 
 const baseUrl = Linking.createURL('/');
 
@@ -21,6 +25,17 @@ const linking = {
       ListDetails: 'lists/:listId',
       Invites: 'invites',
     },
+  },
+  getStateFromPath: (path, options) => {
+    const cleanedPath = isGhPages && path.startsWith(GH_PAGES_BASE)
+      ? path.slice(GH_PAGES_BASE.length) || '/'
+      : path;
+    return getStateFromPath(cleanedPath, options);
+  },
+  getPathFromState: (state, options) => {
+    const rawPath = getPathFromState(state, options);
+    const normalizedPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+    return isGhPages ? `${GH_PAGES_BASE}${normalizedPath}` : normalizedPath;
   },
 };
 
