@@ -12,6 +12,8 @@ const translations = {
     'auth.email.placeholder': 'you@example.com',
     'auth.password.label': 'Password',
     'auth.password.placeholder': 'Enter your password',
+    'auth.password.show': 'Show',
+    'auth.password.hide': 'Hide',
     'auth.logout': 'Log out',
     'auth.anonymous': 'anonymous',
     'auth.signedInAs': 'Signed in as',

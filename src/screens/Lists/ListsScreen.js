@@ -22,6 +22,7 @@ export default function ListsScreen({ navigation }) {
   const [editingListId, setEditingListId] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const userEmail = auth.currentUser?.email || t('auth.anonymous');
 
   useEffect(() => {
@@ -224,14 +225,24 @@ export default function ListsScreen({ navigation }) {
       />
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('auth.change.title')}</Text>
-        <TextInput
-          placeholder={t('auth.change.placeholder')}
-          secureTextEntry
-          style={styles.input}
-          value={newPassword}
-          onChangeText={setNewPassword}
-          textContentType="newPassword"
-        />
+        <View style={styles.passwordRow}>
+          <TextInput
+            placeholder={t('auth.change.placeholder')}
+            secureTextEntry={!isPasswordVisible}
+            style={styles.passwordInput}
+            value={newPassword}
+            onChangeText={setNewPassword}
+            textContentType="newPassword"
+          />
+          <TouchableOpacity
+            style={styles.toggleButton}
+            onPress={() => setIsPasswordVisible((prev) => !prev)}
+          >
+            <Text style={styles.toggleButtonText}>
+              {isPasswordVisible ? t('auth.password.hide') : t('auth.password.show')}
+            </Text>
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity style={styles.primaryButton} onPress={handleChangePassword}>
           <Text style={styles.primaryButtonText}>{t('auth.change.submit')}</Text>
         </TouchableOpacity>
@@ -370,5 +381,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#d0d0d0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  toggleButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  toggleButtonText: {
+    color: '#1f5eff',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

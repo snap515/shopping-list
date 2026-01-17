@@ -7,6 +7,7 @@ import { t } from '../../lib/i18n';
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
 
@@ -51,14 +52,24 @@ export default function LoginScreen({ navigation }) {
         textContentType="emailAddress"
       />
       <Text style={styles.label}>{t('auth.password.label')}</Text>
-      <TextInput
-        placeholder={t('auth.password.placeholder')}
-        secureTextEntry
-        style={styles.input}
-        value={password}
-        onChangeText={setPassword}
-        textContentType="password"
-      />
+      <View style={styles.passwordRow}>
+        <TextInput
+          placeholder={t('auth.password.placeholder')}
+          secureTextEntry={!isPasswordVisible}
+          style={styles.passwordInput}
+          value={password}
+          onChangeText={setPassword}
+          textContentType="password"
+        />
+        <TouchableOpacity
+          style={styles.toggleButton}
+          onPress={() => setIsPasswordVisible((prev) => !prev)}
+        >
+          <Text style={styles.toggleButtonText}>
+            {isPasswordVisible ? t('auth.password.hide') : t('auth.password.show')}
+          </Text>
+        </TouchableOpacity>
+      </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       {info ? <Text style={styles.infoText}>{info}</Text> : null}
       <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
@@ -97,6 +108,28 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 12,
     paddingVertical: 10,
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#d0d0d0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  toggleButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  toggleButtonText: {
+    color: '#1f5eff',
+    fontSize: 13,
+    fontWeight: '600',
   },
   errorText: {
     color: '#c0392b',
