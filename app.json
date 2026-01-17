@@ -24,6 +24,16 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "firebase": {
+        "apiKey": "AIzaSyAXQC-HXoBNObIIbv1_WSCRY1cGon9r25w",
+        "authDomain": "shopping-list-ed7a3.firebaseapp.com",
+        "projectId": "shopping-list-ed7a3",
+        "storageBucket": "shopping-list-ed7a3.firebasestorage.app",
+        "messagingSenderId": "660375284959",
+        "appId": "1:660375284959:web:5c6cda7a90720abec68d6a"
+      }
     }
   }
 }
