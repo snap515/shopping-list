@@ -317,5 +317,9 @@ SL-19 EN — Internationalization (i18n)
 
 - Language switch.
 
+SL-20 Смена пароля и забыл пароль(восстановление через email)
+
+SL-21 Показать/скрыть пароль
+
 ## Release Notes
 Web hosting planned for GitHub Pages after MVP. Mobile releases later via Expo/EAS.
