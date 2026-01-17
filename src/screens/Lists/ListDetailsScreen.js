@@ -11,11 +11,12 @@ import {
 import { t } from '../../lib/i18n';
 
 export default function ListDetailsScreen({ route }) {
-  const { listId } = route.params || {};
+  const { listId, ownerUid } = route.params || {};
   const [items, setItems] = useState([]);
   const [itemText, setItemText] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [error, setError] = useState('');
+  const isOwner = auth.currentUser?.uid === ownerUid;
 
   useEffect(() => {
     if (!listId) {
@@ -100,19 +101,21 @@ export default function ListDetailsScreen({ route }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('listDetails.title')}</Text>
-      <View style={styles.inviteRow}>
-        <TextInput
-          placeholder={t('invites.create.placeholder')}
-          style={styles.input}
-          value={inviteEmail}
-          onChangeText={setInviteEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <TouchableOpacity style={styles.secondaryButton} onPress={handleInvite}>
-          <Text style={styles.secondaryButtonText}>{t('invites.create.submit')}</Text>
-        </TouchableOpacity>
-      </View>
+      {isOwner ? (
+        <View style={styles.inviteRow}>
+          <TextInput
+            placeholder={t('invites.create.placeholder')}
+            style={styles.input}
+            value={inviteEmail}
+            onChangeText={setInviteEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          <TouchableOpacity style={styles.secondaryButton} onPress={handleInvite}>
+            <Text style={styles.secondaryButtonText}>{t('invites.create.submit')}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
       <View style={styles.formRow}>
         <TextInput
           placeholder={t('items.add.placeholder')}

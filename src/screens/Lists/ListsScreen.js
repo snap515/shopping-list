@@ -136,11 +136,17 @@ export default function ListsScreen({ navigation }) {
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
           const isEditing = editingListId === item.id;
+          const isOwner = auth.currentUser?.uid === item.ownerUid;
 
           return (
             <View style={styles.listCard}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('ListDetails', { listId: item.id })}
+                onPress={() =>
+                  navigation.navigate('ListDetails', {
+                    listId: item.id,
+                    ownerUid: item.ownerUid,
+                  })
+                }
                 activeOpacity={isEditing ? 1 : 0.7}
                 disabled={isEditing}
               >
@@ -158,36 +164,38 @@ export default function ListsScreen({ navigation }) {
                   {t('lists.membersCount')} {item.memberUids?.length || 0}
                 </Text>
               </TouchableOpacity>
-              <View style={styles.listActions}>
-              {isEditing ? (
-                <>
-                  <TouchableOpacity
-                    style={styles.inlineButton}
-                    onPress={() => handleRename(item.id)}
-                  >
-                    <Text style={styles.inlineButtonText}>{t('common.save')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.inlineButton} onPress={cancelEditing}>
-                    <Text style={styles.inlineButtonText}>{t('common.cancel')}</Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <>
-                  <TouchableOpacity
-                    style={styles.inlineButton}
-                    onPress={() => startEditing(item)}
-                  >
-                    <Text style={styles.inlineButtonText}>{t('lists.rename.action')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.inlineButton}
-                    onPress={() => handleDelete(item.id)}
-                  >
-                    <Text style={styles.inlineButtonText}>{t('lists.delete.action')}</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-              </View>
+              {isOwner ? (
+                <View style={styles.listActions}>
+                  {isEditing ? (
+                    <>
+                      <TouchableOpacity
+                        style={styles.inlineButton}
+                        onPress={() => handleRename(item.id)}
+                      >
+                        <Text style={styles.inlineButtonText}>{t('common.save')}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.inlineButton} onPress={cancelEditing}>
+                        <Text style={styles.inlineButtonText}>{t('common.cancel')}</Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    <>
+                      <TouchableOpacity
+                        style={styles.inlineButton}
+                        onPress={() => startEditing(item)}
+                      >
+                        <Text style={styles.inlineButtonText}>{t('lists.rename.action')}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.inlineButton}
+                        onPress={() => handleDelete(item.id)}
+                      >
+                        <Text style={styles.inlineButtonText}>{t('lists.delete.action')}</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </View>
+              ) : null}
             </View>
           );
         }}
