@@ -1,19 +1,39 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { loginWithEmail } from '../../lib/auth';
+import { loginWithEmail, resetPassword } from '../../lib/auth';
+import { getAuthErrorKey } from '../../lib/authErrors';
 import { t } from '../../lib/i18n';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
 
   const handleLogin = async () => {
     setError('');
+    setInfo('');
     try {
       await loginWithEmail(email.trim(), password);
     } catch (loginError) {
-      setError(t('auth.login.error'));
+      setError(t(getAuthErrorKey(loginError?.code)));
+    }
+  };
+
+  const handleResetPassword = async () => {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError(t('auth.reset.emptyEmail'));
+      setInfo('');
+      return;
+    }
+
+    setError('');
+    try {
+      await resetPassword(trimmedEmail);
+      setInfo(t('auth.reset.sent'));
+    } catch (resetError) {
+      setError(t(getAuthErrorKey(resetError?.code)));
     }
   };
 
@@ -40,8 +60,12 @@ export default function LoginScreen({ navigation }) {
         textContentType="password"
       />
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {info ? <Text style={styles.infoText}>{info}</Text> : null}
       <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
         <Text style={styles.primaryButtonText}>{t('auth.login.submit')}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={handleResetPassword}>
+        <Text style={styles.linkText}>{t('auth.reset.action')}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
         <Text style={styles.linkText}>{t('auth.login.noAccount')}</Text>
@@ -76,6 +100,11 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#c0392b',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  infoText: {
+    color: '#1f5eff',
     marginBottom: 8,
     textAlign: 'center',
   },

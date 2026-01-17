@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { registerWithEmail } from '../../lib/auth';
+import { getAuthErrorKey } from '../../lib/authErrors';
 import { createUserProfile } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 
@@ -18,7 +19,7 @@ export default function RegisterScreen({ navigation }) {
         email: userCredential.user.email,
       });
     } catch (registerError) {
-      setError(t('auth.register.error'));
+      setError(t(getAuthErrorKey(registerError?.code)));
     }
   };
 

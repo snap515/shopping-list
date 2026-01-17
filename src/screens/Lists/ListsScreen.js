@@ -11,15 +11,17 @@ import {
 } from 'react-native';
 import { auth } from '../../lib/firebase';
 import { createList, deleteList, renameList, subscribeToUserLists } from '../../lib/firestore';
-import { logout } from '../../lib/auth';
+import { changePassword, logout } from '../../lib/auth';
 import { t } from '../../lib/i18n';
 
 export default function ListsScreen({ navigation }) {
   const [lists, setLists] = useState([]);
   const [listName, setListName] = useState('');
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [editingListId, setEditingListId] = useState(null);
   const [editingName, setEditingName] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const userEmail = auth.currentUser?.email || t('auth.anonymous');
 
   useEffect(() => {
@@ -44,6 +46,24 @@ export default function ListsScreen({ navigation }) {
       setListName('');
     } catch (createError) {
       setError(t('lists.create.error'));
+    }
+  };
+
+  const handleChangePassword = async () => {
+    const trimmedPassword = newPassword.trim();
+    if (!trimmedPassword) {
+      setError(t('auth.change.emptyPassword'));
+      setInfo('');
+      return;
+    }
+
+    setError('');
+    try {
+      await changePassword(trimmedPassword);
+      setNewPassword('');
+      setInfo(t('auth.change.success'));
+    } catch (changeError) {
+      setError(t('auth.change.error'));
     }
   };
 
@@ -130,6 +150,7 @@ export default function ListsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {info ? <Text style={styles.infoText}>{info}</Text> : null}
       <FlatList
         data={lists}
         keyExtractor={(item) => item.id}
@@ -201,6 +222,20 @@ export default function ListsScreen({ navigation }) {
           );
         }}
       />
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('auth.change.title')}</Text>
+        <TextInput
+          placeholder={t('auth.change.placeholder')}
+          secureTextEntry
+          style={styles.input}
+          value={newPassword}
+          onChangeText={setNewPassword}
+          textContentType="newPassword"
+        />
+        <TouchableOpacity style={styles.primaryButton} onPress={handleChangePassword}>
+          <Text style={styles.primaryButtonText}>{t('auth.change.submit')}</Text>
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity style={styles.secondaryButton} onPress={logout}>
         <Text style={styles.secondaryButtonText}>{t('auth.logout')}</Text>
       </TouchableOpacity>
@@ -268,6 +303,10 @@ const styles = StyleSheet.create({
     color: '#c0392b',
     marginBottom: 8,
   },
+  infoText: {
+    color: '#1f5eff',
+    marginBottom: 8,
+  },
   listContent: {
     paddingBottom: 12,
   },
@@ -317,10 +356,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     alignSelf: 'flex-start',
+    marginTop: 16,
   },
   secondaryButtonText: {
     color: '#1f5eff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  section: {
+    marginTop: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
   },
 });
