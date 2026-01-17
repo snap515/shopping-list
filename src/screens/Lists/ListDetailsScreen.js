@@ -1,11 +1,119 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth } from '../../lib/firebase';
+import {
+  addListItem,
+  deleteListItem,
+  subscribeToListItems,
+  toggleListItem,
+} from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 
-export default function ListDetailsScreen() {
+export default function ListDetailsScreen({ route }) {
+  const { listId } = route.params || {};
+  const [items, setItems] = useState([]);
+  const [itemText, setItemText] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!listId) {
+      return undefined;
+    }
+
+    return subscribeToListItems(listId, setItems);
+  }, [listId]);
+
+  const sortedItems = useMemo(() => {
+    const toTimestamp = (value) => {
+      if (!value) return 0;
+      if (typeof value === 'number') return value;
+      if (value.seconds) return value.seconds * 1000;
+      return 0;
+    };
+
+    return [...items].sort((a, b) => {
+      if (a.done !== b.done) {
+        return a.done ? 1 : -1;
+      }
+      return toTimestamp(a.createdAt) - toTimestamp(b.createdAt);
+    });
+  }, [items]);
+
+  const handleAddItem = async () => {
+    const trimmedText = itemText.trim();
+    if (!trimmedText) {
+      setError(t('items.add.empty'));
+      return;
+    }
+
+    setError('');
+    try {
+      await addListItem({
+        listId,
+        text: trimmedText,
+        createdByUid: auth.currentUser?.uid || 'unknown',
+      });
+      setItemText('');
+    } catch (addError) {
+      setError(t('items.add.error'));
+    }
+  };
+
+  const handleToggle = async (item) => {
+    try {
+      await toggleListItem(listId, item.id, !item.done);
+    } catch (toggleError) {
+      setError(t('items.toggle.error'));
+    }
+  };
+
+  const handleDelete = async (itemId) => {
+    try {
+      await deleteListItem(listId, itemId);
+    } catch (deleteError) {
+      setError(t('items.delete.error'));
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('listDetails.title')}</Text>
+      <View style={styles.formRow}>
+        <TextInput
+          placeholder={t('items.add.placeholder')}
+          style={styles.input}
+          value={itemText}
+          onChangeText={setItemText}
+        />
+        <TouchableOpacity style={styles.primaryButton} onPress={handleAddItem}>
+          <Text style={styles.primaryButtonText}>{t('items.add.submit')}</Text>
+        </TouchableOpacity>
+      </View>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      <FlatList
+        data={sortedItems}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        renderItem={({ item }) => (
+          <View style={styles.itemRow}>
+            <TouchableOpacity
+              style={styles.itemToggle}
+              onPress={() => handleToggle(item)}
+            >
+              <View style={[styles.checkbox, item.done && styles.checkboxDone]} />
+              <Text style={[styles.itemText, item.done && styles.itemTextDone]}>
+                {item.text}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleDelete(item.id)}
+            >
+              <Text style={styles.deleteButtonText}>{t('common.delete')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
     </View>
   );
 }
@@ -13,11 +121,86 @@ export default function ListDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 24,
   },
   title: {
     fontSize: 20,
     fontWeight: '600',
+    marginBottom: 16,
+  },
+  formRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  input: {
+    flex: 1,
+    borderColor: '#d0d0d0',
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  primaryButton: {
+    backgroundColor: '#1f5eff',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  errorText: {
+    color: '#c0392b',
+    marginBottom: 8,
+  },
+  listContent: {
+    paddingBottom: 12,
+  },
+  itemRow: {
+    borderColor: '#e1e1e1',
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  itemToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 10,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#1f5eff',
+    borderRadius: 4,
+  },
+  checkboxDone: {
+    backgroundColor: '#1f5eff',
+  },
+  itemText: {
+    fontSize: 16,
+  },
+  itemTextDone: {
+    color: '#888',
+    textDecorationLine: 'line-through',
+  },
+  deleteButton: {
+    marginLeft: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  deleteButtonText: {
+    color: '#c0392b',
+    fontSize: 18,
+    fontWeight: '700',
   },
 });
