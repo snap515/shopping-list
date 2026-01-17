@@ -11,7 +11,7 @@ import {
 import { t } from '../../lib/i18n';
 
 export default function ListDetailsScreen({ route }) {
-  const { listId, ownerUid } = route.params || {};
+  const { listId, ownerUid, listName } = route.params || {};
   const [items, setItems] = useState([]);
   const [itemText, setItemText] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
@@ -89,7 +89,9 @@ export default function ListDetailsScreen({ route }) {
     try {
       await createInvite({
         listId,
+        listName: listName || '',
         fromUid: auth.currentUser?.uid || 'unknown',
+        fromEmail: auth.currentUser?.email || 'unknown',
         toEmail: trimmedEmail,
       });
       setInviteEmail('');

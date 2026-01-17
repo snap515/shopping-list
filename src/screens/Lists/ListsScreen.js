@@ -145,6 +145,7 @@ export default function ListsScreen({ navigation }) {
                   navigation.navigate('ListDetails', {
                     listId: item.id,
                     ownerUid: item.ownerUid,
+                    listName: item.name,
                   })
                 }
                 activeOpacity={isEditing ? 1 : 0.7}

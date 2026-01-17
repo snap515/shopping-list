@@ -50,10 +50,12 @@ export const renameList = (listId, name) =>
 
 export const deleteList = (listId) => deleteDoc(doc(db, 'lists', listId));
 
-export const createInvite = async ({ listId, fromUid, toEmail }) =>
+export const createInvite = async ({ listId, listName, fromUid, fromEmail, toEmail }) =>
   addDoc(invitesCollection, {
     listId,
+    listName,
     fromUid,
+    fromEmailLower: fromEmail.toLowerCase(),
     toEmailLower: toEmail.toLowerCase(),
     status: 'pending',
     createdAt: serverTimestamp(),
