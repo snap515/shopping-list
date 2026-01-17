@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth } from '../../lib/firebase';
 import {
@@ -16,6 +16,7 @@ export default function ListDetailsScreen({ route }) {
   const [itemText, setItemText] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [error, setError] = useState('');
+  const inputRef = useRef(null);
   const isOwner = auth.currentUser?.uid === ownerUid;
 
   useEffect(() => {
@@ -57,6 +58,7 @@ export default function ListDetailsScreen({ route }) {
         createdByUid: auth.currentUser?.uid || 'unknown',
       });
       setItemText('');
+      inputRef.current?.focus();
     } catch (addError) {
       setError(t('items.add.error'));
     }
@@ -124,6 +126,9 @@ export default function ListDetailsScreen({ route }) {
           style={styles.input}
           value={itemText}
           onChangeText={setItemText}
+          onSubmitEditing={handleAddItem}
+          returnKeyType="done"
+          ref={inputRef}
         />
         <TouchableOpacity style={styles.primaryButton} onPress={handleAddItem}>
           <Text style={styles.primaryButtonText}>{t('items.add.submit')}</Text>
