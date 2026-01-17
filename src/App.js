@@ -7,6 +7,7 @@ import RootNavigator from './navigation/RootNavigator';
 const GH_PAGES_BASE = '/shopping-list';
 const isGhPagesHost =
   typeof window !== 'undefined' && window.location.host.endsWith('github.io');
+const useHashRouting = isGhPagesHost;
 
 const baseUrl = Linking.createURL('/');
 
@@ -36,7 +37,19 @@ const linking = {
   getPathFromState: (state, options) => {
     const rawPath = getPathFromState(state, options);
     const normalizedPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
-    return isGhPagesHost ? `${GH_PAGES_BASE}${normalizedPath}` : normalizedPath;
+    if (!useHashRouting) {
+      return isGhPagesHost ? `${GH_PAGES_BASE}${normalizedPath}` : normalizedPath;
+    }
+    return `${GH_PAGES_BASE}/#${normalizedPath}`;
+  },
+  getInitialURL: () => {
+    if (!useHashRouting || typeof window === 'undefined') {
+      return Linking.createURL('/');
+    }
+    const { pathname, hash } = window.location;
+    const path = pathname.replace(GH_PAGES_BASE, '') || '/';
+    const hashPath = hash ? hash.replace('#', '') : path;
+    return `${window.location.origin}${GH_PAGES_BASE}/#${hashPath}`;
   },
 };
 
