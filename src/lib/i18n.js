@@ -1,1 +1,65 @@
-export const t = (key) => key;
+const translations = {
+  en: {
+    'auth.login.title': 'Login',
+    'auth.login.error': 'Login failed. Check your credentials.',
+    'auth.login.submit': 'Log in',
+    'auth.login.noAccount': "Don't have an account? Register",
+    'auth.register.title': 'Register',
+    'auth.register.error': 'Registration failed. Try again.',
+    'auth.register.submit': 'Create account',
+    'auth.register.haveAccount': 'Already have an account? Log in',
+    'auth.email.label': 'Email',
+    'auth.email.placeholder': 'you@example.com',
+    'auth.password.label': 'Password',
+    'auth.password.placeholder': 'Enter your password',
+    'auth.logout': 'Log out',
+    'auth.anonymous': 'anonymous',
+    'auth.signedInAs': 'Signed in as',
+    'lists.title': 'Your lists',
+    'lists.create.emptyName': 'Enter a list name.',
+    'lists.create.error': 'Could not create the list.',
+    'lists.create.placeholder': 'New list name',
+    'lists.create.submit': 'Add',
+    'lists.rename.emptyName': 'Enter a new name.',
+    'lists.rename.error': 'Could not rename the list.',
+    'lists.rename.placeholder': 'Rename list',
+    'lists.rename.action': 'Rename',
+    'lists.delete.error': 'Could not delete the list.',
+    'lists.delete.title': 'Delete list?',
+    'lists.delete.message': 'This will remove the list for everyone.',
+    'lists.delete.action': 'Delete',
+    'lists.membersCount': 'Members',
+    'listDetails.title': 'List details',
+    'items.add.empty': 'Enter an item.',
+    'items.add.error': 'Could not add the item.',
+    'items.add.placeholder': 'Add an item',
+    'items.add.submit': 'Add',
+    'items.toggle.error': 'Could not update the item.',
+    'items.delete.error': 'Could not delete the item.',
+    'invites.create.empty': 'Enter an email to invite.',
+    'invites.create.error': 'Could not send the invite.',
+    'invites.create.placeholder': 'Invite by email',
+    'invites.create.submit': 'Invite',
+    'invites.title': 'Invites',
+    'invites.empty': 'No invites yet.',
+    'invites.list': 'List:',
+    'invites.from': 'From:',
+    'invites.accept': 'Accept',
+    'invites.decline': 'Decline',
+    'invites.accept.error': 'Could not accept the invite.',
+    'invites.decline.error': 'Could not decline the invite.',
+    'common.delete': 'Delete',
+    'common.cancel': 'Cancel',
+    'common.save': 'Save',
+  },
+};
+
+const currentLocale = 'en';
+
+export const t = (key, params = {}) => {
+  const template = translations[currentLocale]?.[key] || key;
+  return Object.keys(params).reduce(
+    (result, paramKey) => result.replace(`{${paramKey}}`, String(params[paramKey])),
+    template
+  );
+};
