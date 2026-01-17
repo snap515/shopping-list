@@ -47,3 +47,28 @@ export const renameList = (listId, name) =>
   updateDoc(doc(db, 'lists', listId), { name });
 
 export const deleteList = (listId) => deleteDoc(doc(db, 'lists', listId));
+
+export const subscribeToListItems = (listId, onChange) => {
+  const itemsQuery = query(listItemsCollection(listId));
+  return onSnapshot(itemsQuery, (snapshot) => {
+    const items = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }));
+    onChange(items);
+  });
+};
+
+export const addListItem = async ({ listId, text, createdByUid }) =>
+  addDoc(listItemsCollection(listId), {
+    text,
+    done: false,
+    createdAt: serverTimestamp(),
+    createdByUid,
+  });
+
+export const toggleListItem = (listId, itemId, done) =>
+  updateDoc(doc(db, 'lists', listId, 'items', itemId), { done });
+
+export const deleteListItem = (listId, itemId) =>
+  deleteDoc(doc(db, 'lists', listId, 'items', itemId));
