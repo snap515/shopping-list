@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { registerWithEmail } from '../../lib/auth';
+import { createUserProfile } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 
 export default function RegisterScreen({ navigation }) {
@@ -11,7 +12,11 @@ export default function RegisterScreen({ navigation }) {
   const handleRegister = async () => {
     setError('');
     try {
-      await registerWithEmail(email.trim(), password);
+      const userCredential = await registerWithEmail(email.trim(), password);
+      await createUserProfile({
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+      });
     } catch (registerError) {
       setError(t('auth.register.error'));
     }
