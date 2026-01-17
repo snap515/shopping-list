@@ -37,6 +37,7 @@ const translations = {
     'auth.error.operationNotAllowed': 'Email/password sign-in is disabled.',
     'auth.error.requiresRecentLogin': 'Please log in again and retry.',
     'lists.title': 'Your lists',
+    'settings.title': 'Settings',
     'lists.create.emptyName': 'Enter a list name.',
     'lists.create.error': 'Could not create the list.',
     'lists.create.placeholder': 'New list name',

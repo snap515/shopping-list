@@ -11,18 +11,15 @@ import {
 } from 'react-native';
 import { auth } from '../../lib/firebase';
 import { createList, deleteList, renameList, subscribeToUserLists } from '../../lib/firestore';
-import { changePassword, logout } from '../../lib/auth';
+import { logout } from '../../lib/auth';
 import { t } from '../../lib/i18n';
 
 export default function ListsScreen({ navigation }) {
   const [lists, setLists] = useState([]);
   const [listName, setListName] = useState('');
   const [error, setError] = useState('');
-  const [info, setInfo] = useState('');
   const [editingListId, setEditingListId] = useState(null);
   const [editingName, setEditingName] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const userEmail = auth.currentUser?.email || t('auth.anonymous');
 
   useEffect(() => {
@@ -47,24 +44,6 @@ export default function ListsScreen({ navigation }) {
       setListName('');
     } catch (createError) {
       setError(t('lists.create.error'));
-    }
-  };
-
-  const handleChangePassword = async () => {
-    const trimmedPassword = newPassword.trim();
-    if (!trimmedPassword) {
-      setError(t('auth.change.emptyPassword'));
-      setInfo('');
-      return;
-    }
-
-    setError('');
-    try {
-      await changePassword(trimmedPassword);
-      setNewPassword('');
-      setInfo(t('auth.change.success'));
-    } catch (changeError) {
-      setError(t('auth.change.error'));
     }
   };
 
@@ -132,12 +111,6 @@ export default function ListsScreen({ navigation }) {
             {t('auth.signedInAs')} {userEmail}
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.invitesButton}
-          onPress={() => navigation.navigate('Invites')}
-        >
-          <Text style={styles.invitesButtonText}>{t('invites.title')}</Text>
-        </TouchableOpacity>
       </View>
       <View style={styles.formRow}>
         <TextInput
@@ -151,7 +124,6 @@ export default function ListsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      {info ? <Text style={styles.infoText}>{info}</Text> : null}
       <FlatList
         data={lists}
         keyExtractor={(item) => item.id}
@@ -223,30 +195,6 @@ export default function ListsScreen({ navigation }) {
           );
         }}
       />
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('auth.change.title')}</Text>
-        <View style={styles.passwordRow}>
-          <TextInput
-            placeholder={t('auth.change.placeholder')}
-            secureTextEntry={!isPasswordVisible}
-            style={styles.passwordInput}
-            value={newPassword}
-            onChangeText={setNewPassword}
-            textContentType="newPassword"
-          />
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() => setIsPasswordVisible((prev) => !prev)}
-          >
-            <Text style={styles.toggleButtonText}>
-              {isPasswordVisible ? t('auth.password.hide') : t('auth.password.show')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity style={styles.primaryButton} onPress={handleChangePassword}>
-          <Text style={styles.primaryButtonText}>{t('auth.change.submit')}</Text>
-        </TouchableOpacity>
-      </View>
       <TouchableOpacity style={styles.secondaryButton} onPress={logout}>
         <Text style={styles.secondaryButtonText}>{t('auth.logout')}</Text>
       </TouchableOpacity>
@@ -272,18 +220,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 16,
-  },
-  invitesButton: {
-    borderColor: '#1f5eff',
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  invitesButtonText: {
-    color: '#1f5eff',
-    fontSize: 14,
-    fontWeight: '600',
   },
   formRow: {
     flexDirection: 'row',
@@ -312,10 +248,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#c0392b',
-    marginBottom: 8,
-  },
-  infoText: {
-    color: '#1f5eff',
     marginBottom: 8,
   },
   listContent: {
@@ -372,36 +304,6 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     color: '#1f5eff',
     fontSize: 16,
-    fontWeight: '600',
-  },
-  section: {
-    marginTop: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  passwordRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderColor: '#d0d0d0',
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 12,
-  },
-  passwordInput: {
-    flex: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  toggleButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  toggleButtonText: {
-    color: '#1f5eff',
-    fontSize: 13,
     fontWeight: '600',
   },
 });

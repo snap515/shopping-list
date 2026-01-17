@@ -22,9 +22,14 @@ const linking = {
     screens: {
       Login: 'login',
       Register: 'register',
-      Lists: 'lists',
+      Tabs: {
+        screens: {
+          Lists: 'lists',
+          Invites: 'invites',
+          Settings: 'settings',
+        },
+      },
       ListDetails: 'lists/:listId',
-      Invites: 'invites',
     },
   },
   getStateFromPath: (path, options) => {

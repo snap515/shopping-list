@@ -68,7 +68,7 @@ invites/{inviteId}:
 
 SHOPPING LIST TASKS (RU / EN)
 
-SL-1 Project structure
+SL-1 Project structure [DONE]
 SL-1 RU — Структура проекта
 - Создать папку src.
 - Вынести логику из App.js.
@@ -81,7 +81,7 @@ SL-1 EN — Project structure
 
 --------------------------------------------------
 
-SL-2 App navigation setup
+SL-2 App navigation setup [DONE]
 SL-2 RU — Настройка навигации приложения
 - Установить React Navigation.
 - Создать RootNavigator.
@@ -96,7 +96,7 @@ SL-2 EN — App navigation setup
 
 --------------------------------------------------
 
-SL-3 Auth screens (UI only)
+SL-3 Auth screens (UI only) [DONE]
 SL-3 RU — Экраны авторизации (только UI)
 - UI экрана Login.
 - UI экрана Register.
@@ -109,7 +109,7 @@ SL-3 EN — Auth screens (UI only)
 
 --------------------------------------------------
 
-SL-4 Firebase project setup
+SL-4 Firebase project setup [DONE]
 SL-4 RU — Настройка Firebase проекта
 - Создать Firebase проект.
 - Включить Email/Password аутентификацию.
@@ -122,7 +122,7 @@ SL-4 EN — Firebase project setup
 
 --------------------------------------------------
 
-SL-5 Firebase SDK integration
+SL-5 Firebase SDK integration [DONE]
 SL-5 RU — Подключение Firebase SDK
 - Установить пакет firebase.
 - Создать src/lib/firebase.js.
@@ -135,7 +135,7 @@ SL-5 EN — Firebase SDK integration
 
 --------------------------------------------------
 
-SL-6 Authentication logic
+SL-6 Authentication logic [DONE]
 SL-6 RU — Логика авторизации
 - Регистрация пользователя.
 - Логин пользователя.
@@ -150,7 +150,7 @@ SL-6 EN — Authentication logic
 
 --------------------------------------------------
 
-SL-7 Firestore data model
+SL-7 Firestore data model [DONE]
 SL-7 RU — Модель данных Firestore
 - Коллекция users.
 - Коллекция lists.
@@ -165,7 +165,7 @@ SL-7 EN — Firestore data model
 
 --------------------------------------------------
 
-SL-8 Lists screen
+SL-8 Lists screen [DONE]
 SL-8 RU — Экран списков
 - Показать списки пользователя.
 - Создание нового списка.
@@ -178,7 +178,7 @@ SL-8 EN — Lists screen
 
 --------------------------------------------------
 
-SL-9 List details (items)
+SL-9 List details (items) [DONE]
 SL-9 RU — Экран списка товаров
 - Realtime-обновление товаров.
 - Добавление товара.
@@ -195,7 +195,7 @@ SL-9 EN — List details (items)
 
 --------------------------------------------------
 
-SL-10 List sharing (invites)
+SL-10 List sharing (invites) [DONE]
 SL-10 RU — Общий доступ к спискам
 - Приглашение по email.
 - Принятие приглашения.
@@ -212,12 +212,12 @@ SL-10 EN — List sharing (invites)
 
 --------------------------------------------------
 
-SL-11 Add translations
+SL-11 Add translations [DONE]
 
 
 --------------------------------------------------
 
-SL-12 Firestore security rules
+SL-12 Firestore security rules [DONE]
 SL-12 RU — Правила безопасности Firestore
 - Доступ только для участников списка.
 - Защита приглашений.
@@ -228,7 +228,7 @@ SL-12 EN — Firestore security rules
 
 --------------------------------------------------
 
-SL-13 Web build
+SL-13 Web build [DONE]
 SL-13 RU — Веб-сборка
 - Экспорт веб-версии Expo.
 - Проверка роутинга.
@@ -241,7 +241,7 @@ SL-13 EN — Web build
 
 --------------------------------------------------
 
-SL-14 GitHub Pages deploy
+SL-14 GitHub Pages deploy [DONE]
 SL-14 RU — Деплой на GitHub Pages
 - Настройка GitHub Pages.
 - Опционально: GitHub Actions.
@@ -317,13 +317,14 @@ SL-19 EN — Internationalization (i18n)
 
 - Language switch.
 
-SL-20 Смена пароля и забыл пароль(восстановление через email)
+SL-20 Смена пароля и забыл пароль(восстановление через email) [DONE]
 
-SL-21 Показать/скрыть пароль
+SL-21 Показать/скрыть пароль [DONE]
 
 SL-22 Добавить выбор языка
-SL-23 Добавить бургер меню и вынести туда смену пароля и выборя языка
-SL-24 Сделать чтоб при вводе текста и ажатии enter элемент добавлялся в список
+SL-23 Добавить экраны Lists / Invites / Settings [DONE]
+SL-24 Сделать чтоб при вводе текста и ажатии enter элемент добавлялся в список [DONE]
+SL-25 Добавить дневную и ночную темы
 
 ## Release Notes
 Web hosting planned for GitHub Pages after MVP. Mobile releases later via Expo/EAS.
