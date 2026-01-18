@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { registerWithEmail } from '../../lib/auth';
 import { getAuthErrorKey } from '../../lib/authErrors';
@@ -10,6 +10,7 @@ export default function RegisterScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState('');
+  const passwordRef = useRef(null);
 
   const handleRegister = async () => {
     setError('');
@@ -35,6 +36,8 @@ export default function RegisterScreen({ navigation }) {
         style={styles.input}
         value={email}
         onChangeText={setEmail}
+        onSubmitEditing={() => passwordRef.current?.focus()}
+        returnKeyType="next"
         textContentType="emailAddress"
       />
       <Text style={styles.label}>{t('auth.password.label')}</Text>
@@ -45,7 +48,10 @@ export default function RegisterScreen({ navigation }) {
           style={styles.passwordInput}
           value={password}
           onChangeText={setPassword}
+          onSubmitEditing={handleRegister}
+          returnKeyType="done"
           textContentType="newPassword"
+          ref={passwordRef}
         />
         <TouchableOpacity
           style={styles.toggleButton}

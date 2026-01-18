@@ -112,12 +112,14 @@ export default function ListsScreen({ navigation }) {
         </View>
       </View>
       <View style={styles.formRow}>
-        <TextInput
-          placeholder={t('lists.create.placeholder')}
-          style={styles.input}
-          value={listName}
-          onChangeText={setListName}
-        />
+      <TextInput
+        placeholder={t('lists.create.placeholder')}
+        style={styles.input}
+        value={listName}
+        onChangeText={setListName}
+        onSubmitEditing={handleCreateList}
+        returnKeyType="done"
+      />
         <TouchableOpacity style={styles.primaryButton} onPress={handleCreateList}>
           <Text style={styles.primaryButtonText}>{t('lists.create.submit')}</Text>
         </TouchableOpacity>
