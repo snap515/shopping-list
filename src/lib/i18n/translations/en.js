@@ -118,6 +118,11 @@ export default {
       de: 'German',
       en: 'English',
     },
+    theme: {
+      title: 'Theme',
+      light: 'Light',
+      dark: 'Dark',
+    },
   },
   tabs: {
     lists: 'Lists',

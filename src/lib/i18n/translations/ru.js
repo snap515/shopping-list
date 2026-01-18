@@ -118,6 +118,11 @@ export default {
       de: 'Немецкий',
       en: 'Английский',
     },
+    theme: {
+      title: 'Тема',
+      light: 'Светлая',
+      dark: 'Тёмная',
+    },
   },
   tabs: {
     lists: 'Списки',

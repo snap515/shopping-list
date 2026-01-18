@@ -3,10 +3,12 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { auth } from '../../lib/firebase';
 import { acceptInvite, declineInvite, subscribeToIncomingInvites } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
+import { useTheme } from '../../lib/theme/ThemeProvider';
 
 export default function InvitesScreen() {
   const [invites, setInvites] = useState([]);
   const [error, setError] = useState('');
+  const { theme } = useTheme();
 
   useEffect(() => {
     const email = auth.currentUser?.email;
@@ -41,28 +43,47 @@ export default function InvitesScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('invites.title')}</Text>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.title, { color: theme.colors.text }]}>{t('invites.title')}</Text>
+      {error ? (
+        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{error}</Text>
+      ) : null}
       <FlatList
         data={invites}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
-        ListEmptyComponent={<Text style={styles.emptyText}>{t('invites.empty')}</Text>}
+        ListEmptyComponent={
+          <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
+            {t('invites.empty')}
+          </Text>
+        }
         renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>
+          <View
+            style={[
+              styles.card,
+              { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
               {t('invites.list')} {item.listName || item.listId}
             </Text>
-            <Text style={styles.cardMeta}>
+            <Text style={[styles.cardMeta, { color: theme.colors.muted }]}>
               {t('invites.from')} {item.fromEmailLower || item.fromUid}
             </Text>
             <View style={styles.actions}>
-              <TouchableOpacity style={styles.primaryButton} onPress={() => handleAccept(item)}>
+              <TouchableOpacity
+                style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
+                onPress={() => handleAccept(item)}
+              >
                 <Text style={styles.primaryButtonText}>{t('invites.accept')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.secondaryButton} onPress={() => handleDecline(item.id)}>
-                <Text style={styles.secondaryButtonText}>{t('invites.decline')}</Text>
+              <TouchableOpacity
+                style={[styles.secondaryButton, { borderColor: theme.colors.primary }]}
+                onPress={() => handleDecline(item.id)}
+              >
+                <Text style={[styles.secondaryButtonText, { color: theme.colors.primary }]}>
+                  {t('invites.decline')}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -90,12 +111,9 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   emptyText: {
-    color: '#666',
   },
   card: {
-    borderColor: '#e1e1e1',
     borderRadius: 10,
-    borderWidth: 1,
     padding: 12,
     marginBottom: 10,
   },
@@ -104,7 +122,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cardMeta: {
-    color: '#666',
     marginTop: 4,
   },
   actions: {
@@ -113,7 +130,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   primaryButton: {
-    backgroundColor: '#1f5eff',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -124,14 +140,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   secondaryButton: {
-    borderColor: '#1f5eff',
     borderRadius: 8,
-    borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   secondaryButtonText: {
-    color: '#1f5eff',
     fontSize: 14,
     fontWeight: '600',
   },

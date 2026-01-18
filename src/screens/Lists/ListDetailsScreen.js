@@ -10,6 +10,7 @@ import {
   toggleListItem,
 } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
+import { useTheme } from '../../lib/theme/ThemeProvider';
 
 export default function ListDetailsScreen({ route }) {
   const { listId, ownerUid, listName } = route.params || {};
@@ -21,6 +22,7 @@ export default function ListDetailsScreen({ route }) {
   const [listOwnerUid, setListOwnerUid] = useState(ownerUid);
   const inputRef = useRef(null);
   const isOwner = auth.currentUser?.uid === listOwnerUid;
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (!listId) {
@@ -128,23 +130,37 @@ export default function ListDetailsScreen({ route }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('listDetails.title')}</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.title, { color: theme.colors.text }]}>
+        {t('listDetails.title')}
+      </Text>
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('listDetails.membersTitle')}</Text>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          {t('listDetails.membersTitle')}
+        </Text>
         {members.length === 0 ? (
-          <Text style={styles.mutedText}>{t('listDetails.membersEmpty')}</Text>
+          <Text style={[styles.mutedText, { color: theme.colors.muted }]}>
+            {t('listDetails.membersEmpty')}
+          </Text>
         ) : (
           members.map((member) => (
-            <View key={member.id} style={styles.memberRow}>
-              <Text style={styles.memberText}>
+            <View
+              key={member.id}
+              style={[
+                styles.memberRow,
+                { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+              ]}
+            >
+              <Text style={[styles.memberText, { color: theme.colors.text }]}>
                 {member.email || member.id}
                 {member.id === auth.currentUser?.uid
                   ? ` ${t('listDetails.youSuffix')}`
                   : ''}
               </Text>
               {member.id === listOwnerUid ? (
-                <Text style={styles.memberBadge}>{t('listDetails.ownerBadge')}</Text>
+                <Text style={[styles.memberBadge, { color: theme.colors.primary }]}>
+                  {t('listDetails.ownerBadge')}
+                </Text>
               ) : null}
             </View>
           ))
@@ -154,44 +170,79 @@ export default function ListDetailsScreen({ route }) {
         <View style={styles.inviteRow}>
           <TextInput
             placeholder={t('invites.create.placeholder')}
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: theme.colors.border, color: theme.colors.text },
+            ]}
             value={inviteEmail}
             onChangeText={setInviteEmail}
             autoCapitalize="none"
             keyboardType="email-address"
+            placeholderTextColor={theme.colors.muted}
           />
-          <TouchableOpacity style={styles.secondaryButton} onPress={handleInvite}>
-            <Text style={styles.secondaryButtonText}>{t('invites.create.submit')}</Text>
+          <TouchableOpacity
+            style={[styles.secondaryButton, { borderColor: theme.colors.primary }]}
+            onPress={handleInvite}
+          >
+            <Text style={[styles.secondaryButtonText, { color: theme.colors.primary }]}>
+              {t('invites.create.submit')}
+            </Text>
           </TouchableOpacity>
         </View>
       ) : null}
       <View style={styles.formRow}>
         <TextInput
           placeholder={t('items.add.placeholder')}
-          style={styles.input}
+          style={[
+            styles.input,
+            { borderColor: theme.colors.border, color: theme.colors.text },
+          ]}
           value={itemText}
           onChangeText={setItemText}
           onSubmitEditing={handleAddItem}
           returnKeyType="done"
           ref={inputRef}
+          placeholderTextColor={theme.colors.muted}
         />
-        <TouchableOpacity style={styles.primaryButton} onPress={handleAddItem}>
+        <TouchableOpacity
+          style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
+          onPress={handleAddItem}
+        >
           <Text style={styles.primaryButtonText}>{t('items.add.submit')}</Text>
         </TouchableOpacity>
       </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? (
+        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{error}</Text>
+      ) : null}
       <FlatList
         data={sortedItems}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <View style={styles.itemRow}>
+          <View
+            style={[
+              styles.itemRow,
+              { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+            ]}
+          >
             <TouchableOpacity
               style={styles.itemToggle}
               onPress={() => handleToggle(item)}
             >
-              <View style={[styles.checkbox, item.done && styles.checkboxDone]} />
-              <Text style={[styles.itemText, item.done && styles.itemTextDone]}>
+              <View
+                style={[
+                  styles.checkbox,
+                  { borderColor: theme.colors.primary },
+                  item.done && { backgroundColor: theme.colors.primary },
+                ]}
+              />
+              <Text
+                style={[
+                  styles.itemText,
+                  { color: theme.colors.text },
+                  item.done && { color: theme.colors.muted, textDecorationLine: 'line-through' },
+                ]}
+              >
                 {item.text}
               </Text>
             </TouchableOpacity>
@@ -199,7 +250,9 @@ export default function ListDetailsScreen({ route }) {
               style={styles.deleteButton}
               onPress={() => handleDelete(item.id)}
             >
-              <Text style={styles.deleteButtonText}>{t('common.delete')}</Text>
+              <Text style={[styles.deleteButtonText, { color: theme.colors.danger }]}>
+                {t('common.delete')}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -287,7 +340,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   secondaryButtonText: {
-    color: '#1f5eff',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -318,18 +370,10 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: '#1f5eff',
     borderRadius: 4,
-  },
-  checkboxDone: {
-    backgroundColor: '#1f5eff',
   },
   itemText: {
     fontSize: 16,
-  },
-  itemTextDone: {
-    color: '#888',
-    textDecorationLine: 'line-through',
   },
   deleteButton: {
     marginLeft: 12,

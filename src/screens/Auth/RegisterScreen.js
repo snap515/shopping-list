@@ -4,6 +4,7 @@ import { registerWithEmail } from '../../lib/auth';
 import { getAuthErrorKey } from '../../lib/authErrors';
 import { createUserProfile } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
+import { useTheme } from '../../lib/theme/ThemeProvider';
 
 export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -11,6 +12,7 @@ export default function RegisterScreen({ navigation }) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState('');
   const passwordRef = useRef(null);
+  const { theme } = useTheme();
 
   const handleRegister = async () => {
     setError('');
@@ -26,48 +28,63 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('auth.register.title')}</Text>
-      <Text style={styles.label}>{t('auth.email.label')}</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.title, { color: theme.colors.text }]}>
+        {t('auth.register.title')}
+      </Text>
+      <Text style={[styles.label, { color: theme.colors.text }]}>
+        {t('auth.email.label')}
+      </Text>
       <TextInput
         autoCapitalize="none"
         keyboardType="email-address"
         placeholder={t('auth.email.placeholder')}
-        style={styles.input}
+        style={[styles.input, { borderColor: theme.colors.border, color: theme.colors.text }]}
         value={email}
         onChangeText={setEmail}
         onSubmitEditing={() => passwordRef.current?.focus()}
         returnKeyType="next"
         textContentType="emailAddress"
+        placeholderTextColor={theme.colors.muted}
       />
-      <Text style={styles.label}>{t('auth.password.label')}</Text>
-      <View style={styles.passwordRow}>
+      <Text style={[styles.label, { color: theme.colors.text }]}>
+        {t('auth.password.label')}
+      </Text>
+      <View style={[styles.passwordRow, { borderColor: theme.colors.border }]}>
         <TextInput
           placeholder={t('auth.password.placeholder')}
           secureTextEntry={!isPasswordVisible}
-          style={styles.passwordInput}
+          style={[styles.passwordInput, { color: theme.colors.text }]}
           value={password}
           onChangeText={setPassword}
           onSubmitEditing={handleRegister}
           returnKeyType="done"
           textContentType="newPassword"
           ref={passwordRef}
+          placeholderTextColor={theme.colors.muted}
         />
         <TouchableOpacity
           style={styles.toggleButton}
           onPress={() => setIsPasswordVisible((prev) => !prev)}
         >
-          <Text style={styles.toggleButtonText}>
+          <Text style={[styles.toggleButtonText, { color: theme.colors.primary }]}>
             {isPasswordVisible ? t('auth.password.hide') : t('auth.password.show')}
           </Text>
         </TouchableOpacity>
       </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <TouchableOpacity style={styles.primaryButton} onPress={handleRegister}>
+      {error ? (
+        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{error}</Text>
+      ) : null}
+      <TouchableOpacity
+        style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
+        onPress={handleRegister}
+      >
         <Text style={styles.primaryButtonText}>{t('auth.register.submit')}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.linkText}>{t('auth.register.haveAccount')}</Text>
+        <Text style={[styles.linkText, { color: theme.colors.primary }]}>
+          {t('auth.register.haveAccount')}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -90,7 +107,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   input: {
-    borderColor: '#d0d0d0',
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 16,
@@ -100,7 +116,6 @@ const styles = StyleSheet.create({
   passwordRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: '#d0d0d0',
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 16,
