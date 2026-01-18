@@ -75,6 +75,10 @@ export default {
   },
   listDetails: {
     title: 'Liste',
+    membersTitle: 'Teilnehmer',
+    membersEmpty: 'Noch keine Teilnehmer.',
+    ownerBadge: 'Inhaber',
+    youSuffix: '(Sie)',
   },
   items: {
     add: {

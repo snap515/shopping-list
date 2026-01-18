@@ -38,7 +38,11 @@ export default function ListsScreen({ navigation }) {
 
     setError('');
     try {
-      await createList({ name: trimmedName, ownerUid: auth.currentUser.uid });
+      await createList({
+        name: trimmedName,
+        ownerUid: auth.currentUser.uid,
+        ownerEmail: auth.currentUser.email,
+      });
       setListName('');
     } catch (createError) {
       setError(t('lists.create.error'));

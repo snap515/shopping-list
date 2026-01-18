@@ -4,6 +4,8 @@ import {
   collection,
   deleteDoc,
   doc,
+  documentId,
+  getDocs,
   onSnapshot,
   query,
   serverTimestamp,
@@ -37,11 +39,12 @@ export const subscribeToUserLists = (uid, onChange) => {
   });
 };
 
-export const createList = async ({ name, ownerUid }) =>
+export const createList = async ({ name, ownerUid, ownerEmail }) =>
   addDoc(listsCollection, {
     name,
     ownerUid,
     memberUids: [ownerUid],
+    memberEmails: ownerEmail ? { [ownerUid]: ownerEmail } : {},
     createdAt: serverTimestamp(),
   });
 
@@ -49,6 +52,29 @@ export const renameList = (listId, name) =>
   updateDoc(doc(db, 'lists', listId), { name });
 
 export const deleteList = (listId) => deleteDoc(doc(db, 'lists', listId));
+
+export const subscribeToList = (listId, onChange) =>
+  onSnapshot(doc(db, 'lists', listId), (snapshot) => {
+    if (!snapshot.exists()) {
+      onChange(null);
+      return;
+    }
+    onChange({ id: snapshot.id, ...snapshot.data() });
+  });
+
+export const getUsersByIds = async (uids) => {
+  const uniqueIds = Array.from(new Set(uids)).filter(Boolean);
+  if (uniqueIds.length === 0) {
+    return [];
+  }
+
+  const usersQuery = query(usersCollection, documentId(), 'in', uniqueIds);
+  const snapshot = await getDocs(usersQuery);
+  return snapshot.docs.map((docSnap) => ({
+    id: docSnap.id,
+    ...docSnap.data(),
+  }));
+};
 
 export const createInvite = async ({ listId, listName, fromUid, fromEmail, toEmail }) =>
   addDoc(invitesCollection, {
@@ -77,13 +103,16 @@ export const subscribeToIncomingInvites = (toEmailLower, onChange) => {
   });
 };
 
-export const acceptInvite = async ({ inviteId, listId, userUid }) => {
+export const acceptInvite = async ({ inviteId, listId, userUid, userEmail }) => {
   const batch = writeBatch(db);
   const inviteRef = doc(db, 'invites', inviteId);
   const listRef = doc(db, 'lists', listId);
 
   batch.update(inviteRef, { status: 'accepted' });
-  batch.update(listRef, { memberUids: arrayUnion(userUid) });
+  batch.update(listRef, {
+    memberUids: arrayUnion(userUid),
+    ...(userEmail ? { [`memberEmails.${userUid}`]: userEmail } : {}),
+  });
 
   await batch.commit();
 };
