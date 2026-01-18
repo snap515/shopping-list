@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { loginWithEmail, resetPassword } from '../../lib/auth';
 import { getAuthErrorKey } from '../../lib/authErrors';
@@ -10,6 +10,7 @@ export default function LoginScreen({ navigation }) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
+  const passwordRef = useRef(null);
 
   const handleLogin = async () => {
     setError('');
@@ -49,6 +50,8 @@ export default function LoginScreen({ navigation }) {
         style={styles.input}
         value={email}
         onChangeText={setEmail}
+        onSubmitEditing={() => passwordRef.current?.focus()}
+        returnKeyType="next"
         textContentType="emailAddress"
       />
       <Text style={styles.label}>{t('auth.password.label')}</Text>
@@ -59,7 +62,10 @@ export default function LoginScreen({ navigation }) {
           style={styles.passwordInput}
           value={password}
           onChangeText={setPassword}
+          onSubmitEditing={handleLogin}
+          returnKeyType="done"
           textContentType="password"
+          ref={passwordRef}
         />
         <TouchableOpacity
           style={styles.toggleButton}
