@@ -5,6 +5,7 @@ import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RootNavigator from './navigation/RootNavigator';
 import { LocaleProvider, useLocale } from './lib/i18n/LocaleProvider';
+import { ThemeProvider, useTheme } from './lib/theme/ThemeProvider';
 
 const GH_PAGES_BASE = '/shopping-list';
 const isGhPagesHost =
@@ -63,9 +64,30 @@ const linking = {
 
 function AppContainer() {
   const { locale } = useLocale();
+  const { theme } = useTheme();
 
   return (
-    <NavigationContainer linking={linking} key={locale}>
+    <NavigationContainer
+      linking={linking}
+      key={`${locale}-${theme.id}`}
+      theme={{
+        dark: theme.id === 'dark',
+        colors: {
+          background: theme.colors.background,
+          card: theme.colors.surface,
+          text: theme.colors.text,
+          border: theme.colors.border,
+          primary: theme.colors.primary,
+          notification: theme.colors.primary,
+        },
+        fonts: {
+          regular: { fontFamily: 'System', fontWeight: '400' },
+          medium: { fontFamily: 'System', fontWeight: '500' },
+          bold: { fontFamily: 'System', fontWeight: '600' },
+          heavy: { fontFamily: 'System', fontWeight: '700' },
+        },
+      }}
+    >
       <RootNavigator />
       <StatusBar style="auto" />
     </NavigationContainer>
@@ -75,9 +97,11 @@ function AppContainer() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <LocaleProvider>
-        <AppContainer />
-      </LocaleProvider>
+      <ThemeProvider>
+        <LocaleProvider>
+          <AppContainer />
+        </LocaleProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

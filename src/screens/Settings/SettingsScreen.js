@@ -4,6 +4,7 @@ import { changePassword, logout } from '../../lib/auth';
 import { auth } from '../../lib/firebase';
 import { t } from '../../lib/i18n';
 import { useLocale } from '../../lib/i18n/LocaleProvider';
+import { useTheme } from '../../lib/theme/ThemeProvider';
 
 const LANGUAGE_NATIVE_NAMES = {
   ru: 'Русский',
@@ -18,6 +19,7 @@ export default function SettingsScreen({ navigation }) {
   const [info, setInfo] = useState('');
   const userEmail = auth.currentUser?.email || t('auth.anonymous');
   const { locale } = useLocale();
+  const { theme, themeId, setThemeId } = useTheme();
 
   const handleChangePassword = async () => {
     const trimmedPassword = newPassword.trim();
@@ -38,51 +40,91 @@ export default function SettingsScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.subtitleTop}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.subtitleTop, { color: theme.colors.muted }]}>
         {t('auth.signedInAs')} {userEmail}
       </Text>
-      <Text style={styles.title}>{t('settings.title')}</Text>
+      <Text style={[styles.title, { color: theme.colors.text }]}>{t('settings.title')}</Text>
       <TouchableOpacity
-        style={styles.languageButton}
+        style={[
+          styles.languageButton,
+          { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+        ]}
+        onPress={() => setThemeId(themeId === 'light' ? 'dark' : 'light')}
+      >
+        <View>
+          <Text style={[styles.languageTitle, { color: theme.colors.text }]}>
+            {t('settings.theme.title')}
+          </Text>
+          <Text style={[styles.languageValue, { color: theme.colors.muted }]}>
+            {t(`settings.theme.${themeId}`)}
+          </Text>
+        </View>
+        <Text style={[styles.languageChevron, { color: theme.colors.muted }]}>›</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.languageButton,
+          { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+        ]}
         onPress={() => navigation.navigate('Language')}
       >
         <View>
-          <Text style={styles.languageTitle}>{t('settings.language.title')}</Text>
-          <Text style={styles.languageValue}>
+          <Text style={[styles.languageTitle, { color: theme.colors.text }]}>
+            {t('settings.language.title')}
+          </Text>
+          <Text style={[styles.languageValue, { color: theme.colors.muted }]}>
             {LANGUAGE_NATIVE_NAMES[locale] || locale}
           </Text>
         </View>
-        <Text style={styles.languageChevron}>›</Text>
+        <Text style={[styles.languageChevron, { color: theme.colors.muted }]}>›</Text>
       </TouchableOpacity>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      {info ? <Text style={styles.infoText}>{info}</Text> : null}
+      {error ? (
+        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{error}</Text>
+      ) : null}
+      {info ? (
+        <Text style={[styles.infoText, { color: theme.colors.primary }]}>{info}</Text>
+      ) : null}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('auth.change.title')}</Text>
-        <View style={styles.passwordRow}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          {t('auth.change.title')}
+        </Text>
+        <View style={[styles.passwordRow, { borderColor: theme.colors.border }]}>
           <TextInput
             placeholder={t('auth.change.placeholder')}
             secureTextEntry={!isPasswordVisible}
-            style={styles.passwordInput}
+            style={[
+              styles.passwordInput,
+              { color: theme.colors.text },
+            ]}
             value={newPassword}
             onChangeText={setNewPassword}
             textContentType="newPassword"
+            placeholderTextColor={theme.colors.muted}
           />
           <TouchableOpacity
             style={styles.toggleButton}
             onPress={() => setIsPasswordVisible((prev) => !prev)}
           >
-            <Text style={styles.toggleButtonText}>
+            <Text style={[styles.toggleButtonText, { color: theme.colors.primary }]}>
               {isPasswordVisible ? t('auth.password.hide') : t('auth.password.show')}
             </Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.primaryButton} onPress={handleChangePassword}>
+        <TouchableOpacity
+          style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
+          onPress={handleChangePassword}
+        >
           <Text style={styles.primaryButtonText}>{t('auth.change.submit')}</Text>
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.secondaryButton} onPress={logout}>
-        <Text style={styles.secondaryButtonText}>{t('auth.logout')}</Text>
+      <TouchableOpacity
+        style={[styles.secondaryButton, { borderColor: theme.colors.primary }]}
+        onPress={logout}
+      >
+        <Text style={[styles.secondaryButtonText, { color: theme.colors.primary }]}>
+          {t('auth.logout')}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -94,7 +136,6 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   subtitleTop: {
-    color: '#666',
     marginBottom: 8,
   },
   title: {
@@ -102,9 +143,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   languageButton: {
-    borderColor: '#e1e1e1',
     borderRadius: 10,
-    borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginBottom: 16,
@@ -117,24 +156,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   languageValue: {
-    color: '#666',
     marginTop: 4,
   },
   languageChevron: {
-    color: '#999',
     fontSize: 18,
     fontWeight: '600',
   },
   errorText: {
-    color: '#c0392b',
     marginBottom: 8,
   },
   infoText: {
-    color: '#1f5eff',
     marginBottom: 8,
-  },
-  section: {
-    marginTop: 8,
   },
   sectionTitle: {
     fontSize: 16,
@@ -144,7 +176,6 @@ const styles = StyleSheet.create({
   passwordRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: '#d0d0d0',
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 12,
@@ -164,7 +195,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   primaryButton: {
-    backgroundColor: '#1f5eff',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -176,16 +206,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   secondaryButton: {
-    borderColor: '#1f5eff',
     borderRadius: 8,
-    borderWidth: 1,
     paddingHorizontal: 16,
     paddingVertical: 10,
     alignSelf: 'flex-start',
     marginTop: 16,
   },
   secondaryButtonText: {
-    color: '#1f5eff',
     fontSize: 16,
     fontWeight: '600',
   },

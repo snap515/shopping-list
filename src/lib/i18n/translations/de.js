@@ -118,6 +118,11 @@ export default {
       de: 'Deutsch',
       en: 'Englisch',
     },
+    theme: {
+      title: 'Thema',
+      light: 'Hell',
+      dark: 'Dunkel',
+    },
   },
   tabs: {
     lists: 'Listen',

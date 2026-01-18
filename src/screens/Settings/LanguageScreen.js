@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { t } from '../../lib/i18n';
 import { useLocale } from '../../lib/i18n/LocaleProvider';
+import { useTheme } from '../../lib/theme/ThemeProvider';
 
 const LANGUAGES = [
   { code: 'ru', native: 'Русский' },
@@ -11,26 +12,44 @@ const LANGUAGES = [
 
 export default function LanguageScreen() {
   const { locale, setLocale } = useLocale();
+  const { theme } = useTheme();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('settings.language.title')}</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.title, { color: theme.colors.text }]}>
+        {t('settings.language.title')}
+      </Text>
       <View style={styles.list}>
         {LANGUAGES.map((lang) => {
           const isActive = locale === lang.code;
           return (
             <TouchableOpacity
               key={lang.code}
-              style={[styles.row, isActive && styles.rowActive]}
+              style={[
+                styles.row,
+                {
+                  borderColor: isActive ? theme.colors.primary : theme.colors.border,
+                  backgroundColor: isActive ? theme.colors.chipBg : theme.colors.surface,
+                },
+              ]}
               onPress={() => setLocale(lang.code)}
             >
               <View style={styles.textBlock}>
-                <Text style={[styles.nativeName, isActive && styles.nativeNameActive]}>
+                <Text
+                  style={[
+                    styles.nativeName,
+                    { color: isActive ? theme.colors.primary : theme.colors.text },
+                  ]}
+                >
                   {lang.native}
                 </Text>
-                <Text style={styles.localizedName}>{t(`settings.language.${lang.code}`)}</Text>
+                <Text style={[styles.localizedName, { color: theme.colors.muted }]}>
+                  {t(`settings.language.${lang.code}`)}
+                </Text>
               </View>
-              {isActive ? <Text style={styles.check}>✓</Text> : null}
+              {isActive ? (
+                <Text style={[styles.check, { color: theme.colors.primary }]}>✓</Text>
+              ) : null}
             </TouchableOpacity>
           );
         })}
@@ -62,10 +81,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  rowActive: {
-    borderColor: '#1f5eff',
-    backgroundColor: '#f2f6ff',
-  },
   textBlock: {
     flex: 1,
   },
@@ -73,15 +88,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
-  nativeNameActive: {
-    color: '#1f5eff',
-  },
   localizedName: {
-    color: '#666',
     marginTop: 4,
   },
   check: {
-    color: '#1f5eff',
     fontSize: 16,
     fontWeight: '700',
   },

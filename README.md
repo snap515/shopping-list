@@ -315,8 +315,6 @@ SL-19 EN — Internationalization (i18n) [DONE]
 - RU / DE / EN languages.
 - Language switch.
 
-- Language switch.
-
 SL-20 Смена пароля и забыл пароль(восстановление через email) [DONE]
 
 SL-21 Показать/скрыть пароль [DONE]

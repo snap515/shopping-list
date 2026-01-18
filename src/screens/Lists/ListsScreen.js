@@ -12,6 +12,7 @@ import {
 import { auth } from '../../lib/firebase';
 import { createList, deleteList, renameList, subscribeToUserLists } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
+import { useTheme } from '../../lib/theme/ThemeProvider';
 
 export default function ListsScreen({ navigation }) {
   const [lists, setLists] = useState([]);
@@ -19,6 +20,7 @@ export default function ListsScreen({ navigation }) {
   const [error, setError] = useState('');
   const [editingListId, setEditingListId] = useState(null);
   const [editingName, setEditingName] = useState('');
+  const { theme } = useTheme();
 
   useEffect(() => {
     const uid = auth.currentUser?.uid;
@@ -105,24 +107,33 @@ export default function ListsScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>{t('lists.title')}</Text>
+        <Text style={[styles.title, { color: theme.colors.text }]}>{t('lists.title')}</Text>
       </View>
       <View style={styles.formRow}>
-      <TextInput
-        placeholder={t('lists.create.placeholder')}
-        style={styles.input}
-        value={listName}
-        onChangeText={setListName}
-        onSubmitEditing={handleCreateList}
-        returnKeyType="done"
-      />
-        <TouchableOpacity style={styles.primaryButton} onPress={handleCreateList}>
+        <TextInput
+          placeholder={t('lists.create.placeholder')}
+          style={[
+            styles.input,
+            { borderColor: theme.colors.border, color: theme.colors.text },
+          ]}
+          value={listName}
+          onChangeText={setListName}
+          onSubmitEditing={handleCreateList}
+          returnKeyType="done"
+          placeholderTextColor={theme.colors.muted}
+        />
+        <TouchableOpacity
+          style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
+          onPress={handleCreateList}
+        >
           <Text style={styles.primaryButtonText}>{t('lists.create.submit')}</Text>
         </TouchableOpacity>
       </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? (
+        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{error}</Text>
+      ) : null}
       <FlatList
         data={lists}
         keyExtractor={(item) => item.id}
@@ -132,7 +143,12 @@ export default function ListsScreen({ navigation }) {
           const isOwner = auth.currentUser?.uid === item.ownerUid;
 
           return (
-            <View style={styles.listCard}>
+            <View
+              style={[
+                styles.listCard,
+                { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+              ]}
+            >
               <TouchableOpacity
                 onPress={() =>
                   navigation.navigate('ListDetails', {
@@ -146,15 +162,21 @@ export default function ListsScreen({ navigation }) {
               >
                 {isEditing ? (
                   <TextInput
-                    style={styles.editInput}
+                    style={[
+                      styles.editInput,
+                      { borderColor: theme.colors.border, color: theme.colors.text },
+                    ]}
                     value={editingName}
                     onChangeText={setEditingName}
                     placeholder={t('lists.rename.placeholder')}
+                    placeholderTextColor={theme.colors.muted}
                   />
                 ) : (
-                  <Text style={styles.listName}>{item.name}</Text>
+                  <Text style={[styles.listName, { color: theme.colors.text }]}>
+                    {item.name}
+                  </Text>
                 )}
-                <Text style={styles.listMeta}>
+                <Text style={[styles.listMeta, { color: theme.colors.muted }]}>
                   {t('lists.membersCount')} {item.memberUids?.length || 0}
                 </Text>
               </TouchableOpacity>
@@ -163,28 +185,39 @@ export default function ListsScreen({ navigation }) {
                   {isEditing ? (
                     <>
                       <TouchableOpacity
-                        style={styles.inlineButton}
+                        style={[styles.inlineButton, { borderColor: theme.colors.primary }]}
                         onPress={() => handleRename(item.id)}
                       >
-                        <Text style={styles.inlineButtonText}>{t('common.save')}</Text>
+                        <Text style={[styles.inlineButtonText, { color: theme.colors.primary }]}>
+                          {t('common.save')}
+                        </Text>
                       </TouchableOpacity>
-                      <TouchableOpacity style={styles.inlineButton} onPress={cancelEditing}>
-                        <Text style={styles.inlineButtonText}>{t('common.cancel')}</Text>
+                      <TouchableOpacity
+                        style={[styles.inlineButton, { borderColor: theme.colors.primary }]}
+                        onPress={cancelEditing}
+                      >
+                        <Text style={[styles.inlineButtonText, { color: theme.colors.primary }]}>
+                          {t('common.cancel')}
+                        </Text>
                       </TouchableOpacity>
                     </>
                   ) : (
                     <>
                       <TouchableOpacity
-                        style={styles.inlineButton}
+                        style={[styles.inlineButton, { borderColor: theme.colors.primary }]}
                         onPress={() => startEditing(item)}
                       >
-                        <Text style={styles.inlineButtonText}>{t('lists.rename.action')}</Text>
+                        <Text style={[styles.inlineButtonText, { color: theme.colors.primary }]}>
+                          {t('lists.rename.action')}
+                        </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={styles.inlineButton}
+                        style={[styles.inlineButton, { borderColor: theme.colors.primary }]}
                         onPress={() => handleDelete(item.id)}
                       >
-                        <Text style={styles.inlineButtonText}>{t('lists.delete.action')}</Text>
+                        <Text style={[styles.inlineButtonText, { color: theme.colors.primary }]}>
+                          {t('lists.delete.action')}
+                        </Text>
                       </TouchableOpacity>
                     </>
                   )}

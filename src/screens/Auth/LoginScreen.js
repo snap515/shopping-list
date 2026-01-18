@@ -3,6 +3,7 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-nativ
 import { loginWithEmail, resetPassword } from '../../lib/auth';
 import { getAuthErrorKey } from '../../lib/authErrors';
 import { t } from '../../lib/i18n';
+import { useTheme } from '../../lib/theme/ThemeProvider';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -11,6 +12,7 @@ export default function LoginScreen({ navigation }) {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const passwordRef = useRef(null);
+  const { theme } = useTheme();
 
   const handleLogin = async () => {
     setError('');
@@ -40,52 +42,71 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('auth.login.title')}</Text>
-      <Text style={styles.label}>{t('auth.email.label')}</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.title, { color: theme.colors.text }]}>
+        {t('auth.login.title')}
+      </Text>
+      <Text style={[styles.label, { color: theme.colors.text }]}>
+        {t('auth.email.label')}
+      </Text>
       <TextInput
         autoCapitalize="none"
         keyboardType="email-address"
         placeholder={t('auth.email.placeholder')}
-        style={styles.input}
+        style={[styles.input, { borderColor: theme.colors.border, color: theme.colors.text }]}
         value={email}
         onChangeText={setEmail}
         onSubmitEditing={() => passwordRef.current?.focus()}
         returnKeyType="next"
         textContentType="emailAddress"
+        placeholderTextColor={theme.colors.muted}
       />
-      <Text style={styles.label}>{t('auth.password.label')}</Text>
-      <View style={styles.passwordRow}>
+      <Text style={[styles.label, { color: theme.colors.text }]}>
+        {t('auth.password.label')}
+      </Text>
+      <View style={[styles.passwordRow, { borderColor: theme.colors.border }]}>
         <TextInput
           placeholder={t('auth.password.placeholder')}
           secureTextEntry={!isPasswordVisible}
-          style={styles.passwordInput}
+          style={[styles.passwordInput, { color: theme.colors.text }]}
           value={password}
           onChangeText={setPassword}
           onSubmitEditing={handleLogin}
           returnKeyType="done"
           textContentType="password"
           ref={passwordRef}
+          placeholderTextColor={theme.colors.muted}
         />
         <TouchableOpacity
           style={styles.toggleButton}
           onPress={() => setIsPasswordVisible((prev) => !prev)}
         >
-          <Text style={styles.toggleButtonText}>
+          <Text style={[styles.toggleButtonText, { color: theme.colors.primary }]}>
             {isPasswordVisible ? t('auth.password.hide') : t('auth.password.show')}
           </Text>
         </TouchableOpacity>
       </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      {info ? <Text style={styles.infoText}>{info}</Text> : null}
-      <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
+      {error ? (
+        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{error}</Text>
+      ) : null}
+      {info ? (
+        <Text style={[styles.infoText, { color: theme.colors.primary }]}>{info}</Text>
+      ) : null}
+      <TouchableOpacity
+        style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
+        onPress={handleLogin}
+      >
         <Text style={styles.primaryButtonText}>{t('auth.login.submit')}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={handleResetPassword}>
-        <Text style={styles.linkText}>{t('auth.reset.action')}</Text>
+        <Text style={[styles.linkText, { color: theme.colors.primary }]}>
+          {t('auth.reset.action')}
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.linkText}>{t('auth.login.noAccount')}</Text>
+        <Text style={[styles.linkText, { color: theme.colors.primary }]}>
+          {t('auth.login.noAccount')}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -108,7 +129,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   input: {
-    borderColor: '#d0d0d0',
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 16,
@@ -118,7 +138,6 @@ const styles = StyleSheet.create({
   passwordRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: '#d0d0d0',
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 16,
@@ -143,12 +162,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   infoText: {
-    color: '#1f5eff',
     marginBottom: 8,
     textAlign: 'center',
   },
   primaryButton: {
-    backgroundColor: '#1f5eff',
     borderRadius: 8,
     marginTop: 8,
     paddingVertical: 12,
@@ -160,7 +177,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   linkText: {
-    color: '#1f5eff',
     marginTop: 16,
     textAlign: 'center',
   },
