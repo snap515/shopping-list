@@ -1,0 +1,128 @@
+export default {
+  auth: {
+    login: {
+      title: 'Login',
+      error: 'Login failed. Check your credentials.',
+      submit: 'Log in',
+      noAccount: "Don't have an account? Register",
+    },
+    register: {
+      title: 'Register',
+      error: 'Registration failed. Try again.',
+      submit: 'Create account',
+      haveAccount: 'Already have an account? Log in',
+    },
+    email: {
+      label: 'Email',
+      placeholder: 'you@example.com',
+    },
+    password: {
+      label: 'Password',
+      placeholder: 'Enter your password',
+      show: 'Show',
+      hide: 'Hide',
+    },
+    logout: 'Log out',
+    anonymous: 'anonymous',
+    signedInAs: 'Signed in as',
+    reset: {
+      action: 'Forgot password?',
+      emptyEmail: 'Enter your email to reset.',
+      sent: 'Password reset email sent.',
+      error: 'Could not send reset email.',
+    },
+    change: {
+      title: 'Change password',
+      placeholder: 'New password',
+      submit: 'Update password',
+      emptyPassword: 'Enter a new password.',
+      success: 'Password updated.',
+      error: 'Could not update password.',
+    },
+    error: {
+      generic: 'Something went wrong. Please try again.',
+      invalidEmail: 'Enter a valid email address.',
+      weakPassword: 'Password must be at least 6 characters.',
+      emailInUse: 'This email is already in use.',
+      userNotFound: 'No account found for this email.',
+      wrongPassword: 'Incorrect password.',
+      tooManyRequests: 'Too many attempts. Try again later.',
+      operationNotAllowed: 'Email/password sign-in is disabled.',
+      requiresRecentLogin: 'Please log in again and retry.',
+    },
+  },
+  lists: {
+    title: 'Your lists',
+    create: {
+      emptyName: 'Enter a list name.',
+      error: 'Could not create the list.',
+      placeholder: 'New list name',
+      submit: 'Add',
+    },
+    rename: {
+      emptyName: 'Enter a new name.',
+      error: 'Could not rename the list.',
+      placeholder: 'Rename list',
+      action: 'Rename',
+    },
+    delete: {
+      error: 'Could not delete the list.',
+      title: 'Delete list?',
+      message: 'This will remove the list for everyone.',
+      action: 'Delete',
+    },
+    membersCount: 'Members',
+  },
+  listDetails: {
+    title: 'List details',
+  },
+  items: {
+    add: {
+      empty: 'Enter an item.',
+      error: 'Could not add the item.',
+      placeholder: 'Add an item',
+      submit: 'Add',
+    },
+    toggle: {
+      error: 'Could not update the item.',
+    },
+    delete: {
+      error: 'Could not delete the item.',
+    },
+  },
+  invites: {
+    create: {
+      empty: 'Enter an email to invite.',
+      error: 'Could not send the invite.',
+      placeholder: 'Invite by email',
+      submit: 'Invite',
+    },
+    title: 'Invites',
+    empty: 'No invites yet.',
+    list: 'List:',
+    from: 'From:',
+    accept: 'Accept',
+    decline: 'Decline',
+    acceptError: 'Could not accept the invite.',
+    declineError: 'Could not decline the invite.',
+  },
+  settings: {
+    title: 'Settings',
+    language: {
+      title: 'Language',
+      ru: 'Russian',
+      de: 'German',
+      en: 'English',
+    },
+  },
+  tabs: {
+    lists: 'Lists',
+    invites: 'Invites',
+    settings: 'Settings',
+  },
+  common: {
+    delete: 'Delete',
+    cancel: 'Cancel',
+    save: 'Save',
+  },
+};

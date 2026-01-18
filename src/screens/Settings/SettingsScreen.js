@@ -3,13 +3,21 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-nativ
 import { changePassword, logout } from '../../lib/auth';
 import { auth } from '../../lib/firebase';
 import { t } from '../../lib/i18n';
+import { useLocale } from '../../lib/i18n/LocaleProvider';
 
-export default function SettingsScreen() {
+const LANGUAGE_NATIVE_NAMES = {
+  ru: 'Русский',
+  de: 'Deutsch',
+  en: 'English',
+};
+
+export default function SettingsScreen({ navigation }) {
   const [newPassword, setNewPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const userEmail = auth.currentUser?.email || t('auth.anonymous');
+  const { locale } = useLocale();
 
   const handleChangePassword = async () => {
     const trimmedPassword = newPassword.trim();
@@ -31,10 +39,22 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('settings.title')}</Text>
-      <Text style={styles.subtitle}>
+      <Text style={styles.subtitleTop}>
         {t('auth.signedInAs')} {userEmail}
       </Text>
+      <Text style={styles.title}>{t('settings.title')}</Text>
+      <TouchableOpacity
+        style={styles.languageButton}
+        onPress={() => navigation.navigate('Language')}
+      >
+        <View>
+          <Text style={styles.languageTitle}>{t('settings.language.title')}</Text>
+          <Text style={styles.languageValue}>
+            {LANGUAGE_NATIVE_NAMES[locale] || locale}
+          </Text>
+        </View>
+        <Text style={styles.languageChevron}>›</Text>
+      </TouchableOpacity>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       {info ? <Text style={styles.infoText}>{info}</Text> : null}
       <View style={styles.section}>
@@ -73,14 +93,37 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
   },
+  subtitleTop: {
+    color: '#666',
+    marginBottom: 8,
+  },
   title: {
     fontSize: 20,
     fontWeight: '600',
   },
-  subtitle: {
+  languageButton: {
+    borderColor: '#e1e1e1',
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  languageTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  languageValue: {
     color: '#666',
     marginTop: 4,
-    marginBottom: 16,
+  },
+  languageChevron: {
+    color: '#999',
+    fontSize: 18,
+    fontWeight: '600',
   },
   errorText: {
     color: '#c0392b',
