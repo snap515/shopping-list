@@ -1,0 +1,128 @@
+export default {
+  auth: {
+    login: {
+      title: 'Вход',
+      error: 'Не удалось войти. Проверьте данные.',
+      submit: 'Войти',
+      noAccount: 'Нет аккаунта? Регистрация',
+    },
+    register: {
+      title: 'Регистрация',
+      error: 'Не удалось зарегистрироваться. Попробуйте снова.',
+      submit: 'Создать аккаунт',
+      haveAccount: 'Уже есть аккаунт? Войти',
+    },
+    email: {
+      label: 'Email',
+      placeholder: 'you@example.com',
+    },
+    password: {
+      label: 'Пароль',
+      placeholder: 'Введите пароль',
+      show: 'Показать',
+      hide: 'Скрыть',
+    },
+    logout: 'Выйти',
+    anonymous: 'аноним',
+    signedInAs: 'Вы вошли как',
+    reset: {
+      action: 'Забыли пароль?',
+      emptyEmail: 'Введите email для восстановления.',
+      sent: 'Письмо для восстановления отправлено.',
+      error: 'Не удалось отправить письмо.',
+    },
+    change: {
+      title: 'Сменить пароль',
+      placeholder: 'Новый пароль',
+      submit: 'Обновить пароль',
+      emptyPassword: 'Введите новый пароль.',
+      success: 'Пароль обновлён.',
+      error: 'Не удалось обновить пароль.',
+    },
+    error: {
+      generic: 'Что-то пошло не так. Попробуйте снова.',
+      invalidEmail: 'Введите корректный email.',
+      weakPassword: 'Пароль должен быть минимум 6 символов.',
+      emailInUse: 'Этот email уже используется.',
+      userNotFound: 'Аккаунт с таким email не найден.',
+      wrongPassword: 'Неверный пароль.',
+      tooManyRequests: 'Слишком много попыток. Попробуйте позже.',
+      operationNotAllowed: 'Вход по email/паролю отключён.',
+      requiresRecentLogin: 'Войдите снова и повторите попытку.',
+    },
+  },
+  lists: {
+    title: 'Мои списки',
+    create: {
+      emptyName: 'Введите название списка.',
+      error: 'Не удалось создать список.',
+      placeholder: 'Название списка',
+      submit: 'Добавить',
+    },
+    rename: {
+      emptyName: 'Введите новое название.',
+      error: 'Не удалось переименовать список.',
+      placeholder: 'Переименовать список',
+      action: 'Переименовать',
+    },
+    delete: {
+      error: 'Не удалось удалить список.',
+      title: 'Удалить список?',
+      message: 'Список будет удалён у всех.',
+      action: 'Удалить',
+    },
+    membersCount: 'Участники',
+  },
+  listDetails: {
+    title: 'Список',
+  },
+  items: {
+    add: {
+      empty: 'Введите товар.',
+      error: 'Не удалось добавить товар.',
+      placeholder: 'Добавить товар',
+      submit: 'Добавить',
+    },
+    toggle: {
+      error: 'Не удалось обновить товар.',
+    },
+    delete: {
+      error: 'Не удалось удалить товар.',
+    },
+  },
+  invites: {
+    create: {
+      empty: 'Введите email для приглашения.',
+      error: 'Не удалось отправить приглашение.',
+      placeholder: 'Пригласить по email',
+      submit: 'Пригласить',
+    },
+    title: 'Приглашения',
+    empty: 'Пока нет приглашений.',
+    list: 'Список:',
+    from: 'От:',
+    accept: 'Принять',
+    decline: 'Отклонить',
+    acceptError: 'Не удалось принять приглашение.',
+    declineError: 'Не удалось отклонить приглашение.',
+  },
+  settings: {
+    title: 'Настройки',
+    language: {
+      title: 'Язык',
+      ru: 'Русский',
+      de: 'Немецкий',
+      en: 'Английский',
+    },
+  },
+  tabs: {
+    lists: 'Списки',
+    invites: 'Приглашения',
+    settings: 'Настройки',
+  },
+  common: {
+    delete: 'Удалить',
+    cancel: 'Отмена',
+    save: 'Сохранить',
+  },
+};

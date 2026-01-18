@@ -1,0 +1,128 @@
+export default {
+  auth: {
+    login: {
+      title: 'Anmelden',
+      error: 'Anmeldung fehlgeschlagen. Bitte prüfe deine Daten.',
+      submit: 'Anmelden',
+      noAccount: 'Kein Konto? Registrieren',
+    },
+    register: {
+      title: 'Registrieren',
+      error: 'Registrierung fehlgeschlagen. Bitte erneut versuchen.',
+      submit: 'Konto erstellen',
+      haveAccount: 'Schon ein Konto? Anmelden',
+    },
+    email: {
+      label: 'E-Mail',
+      placeholder: 'you@example.com',
+    },
+    password: {
+      label: 'Passwort',
+      placeholder: 'Passwort eingeben',
+      show: 'Anzeigen',
+      hide: 'Verbergen',
+    },
+    logout: 'Abmelden',
+    anonymous: 'anonym',
+    signedInAs: 'Angemeldet als',
+    reset: {
+      action: 'Passwort vergessen?',
+      emptyEmail: 'E-Mail zum Zurucksetzen eingeben.',
+      sent: 'E-Mail zum Zurucksetzen gesendet.',
+      error: 'E-Mail konnte nicht gesendet werden.',
+    },
+    change: {
+      title: 'Passwort andern',
+      placeholder: 'Neues Passwort',
+      submit: 'Passwort aktualisieren',
+      emptyPassword: 'Neues Passwort eingeben.',
+      success: 'Passwort aktualisiert.',
+      error: 'Passwort konnte nicht aktualisiert werden.',
+    },
+    error: {
+      generic: 'Etwas ist schiefgelaufen. Bitte erneut versuchen.',
+      invalidEmail: 'Bitte eine gultige E-Mail eingeben.',
+      weakPassword: 'Passwort muss mindestens 6 Zeichen haben.',
+      emailInUse: 'Diese E-Mail wird bereits verwendet.',
+      userNotFound: 'Kein Konto zu dieser E-Mail gefunden.',
+      wrongPassword: 'Falsches Passwort.',
+      tooManyRequests: 'Zu viele Versuche. Bitte später erneut.',
+      operationNotAllowed: 'E-Mail/Passwort-Anmeldung ist deaktiviert.',
+      requiresRecentLogin: 'Bitte erneut anmelden und erneut versuchen.',
+    },
+  },
+  lists: {
+    title: 'Meine Listen',
+    create: {
+      emptyName: 'Listennamen eingeben.',
+      error: 'Liste konnte nicht erstellt werden.',
+      placeholder: 'Neuer Listenname',
+      submit: 'Hinzufügen',
+    },
+    rename: {
+      emptyName: 'Neuen Namen eingeben.',
+      error: 'Liste konnte nicht umbenannt werden.',
+      placeholder: 'Liste umbenennen',
+      action: 'Umbenennen',
+    },
+    delete: {
+      error: 'Liste konnte nicht gelöscht werden.',
+      title: 'Liste löschen?',
+      message: 'Die Liste wird für alle entfernt.',
+      action: 'Löschen',
+    },
+    membersCount: 'Mitglieder',
+  },
+  listDetails: {
+    title: 'Liste',
+  },
+  items: {
+    add: {
+      empty: 'Artikel eingeben.',
+      error: 'Artikel konnte nicht hinzugefügt werden.',
+      placeholder: 'Artikel hinzufügen',
+      submit: 'Hinzufügen',
+    },
+    toggle: {
+      error: 'Artikel konnte nicht aktualisiert werden.',
+    },
+    delete: {
+      error: 'Artikel konnte nicht gelöscht werden.',
+    },
+  },
+  invites: {
+    create: {
+      empty: 'E-Mail für Einladung eingeben.',
+      error: 'Einladung konnte nicht gesendet werden.',
+      placeholder: 'Per E-Mail einladen',
+      submit: 'Einladen',
+    },
+    title: 'Einladungen',
+    empty: 'Noch keine Einladungen.',
+    list: 'Liste:',
+    from: 'Von:',
+    accept: 'Annehmen',
+    decline: 'Ablehnen',
+    acceptError: 'Einladung konnte nicht angenommen werden.',
+    declineError: 'Einladung konnte nicht abgelehnt werden.',
+  },
+  settings: {
+    title: 'Einstellungen',
+    language: {
+      title: 'Sprache',
+      ru: 'Russisch',
+      de: 'Deutsch',
+      en: 'Englisch',
+    },
+  },
+  tabs: {
+    lists: 'Listen',
+    invites: 'Einladungen',
+    settings: 'Einstellungen',
+  },
+  common: {
+    delete: 'Löschen',
+    cancel: 'Abbrechen',
+    save: 'Speichern',
+  },
+};

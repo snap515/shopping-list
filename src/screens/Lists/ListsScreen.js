@@ -19,7 +19,6 @@ export default function ListsScreen({ navigation }) {
   const [error, setError] = useState('');
   const [editingListId, setEditingListId] = useState(null);
   const [editingName, setEditingName] = useState('');
-  const userEmail = auth.currentUser?.email || t('auth.anonymous');
 
   useEffect(() => {
     const uid = auth.currentUser?.uid;
@@ -104,12 +103,7 @@ export default function ListsScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <View>
-          <Text style={styles.title}>{t('lists.title')}</Text>
-          <Text style={styles.subtitle}>
-            {t('auth.signedInAs')} {userEmail}
-          </Text>
-        </View>
+        <Text style={styles.title}>{t('lists.title')}</Text>
       </View>
       <View style={styles.formRow}>
       <TextInput
@@ -208,10 +202,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '600',
-  },
-  subtitle: {
-    color: '#666',
-    marginTop: 4,
   },
   headerRow: {
     flexDirection: 'row',

@@ -1,8 +1,10 @@
 import { getPathFromState, getStateFromPath, NavigationContainer } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 import { StatusBar } from 'expo-status-bar';
+import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RootNavigator from './navigation/RootNavigator';
+import { LocaleProvider, useLocale } from './lib/i18n/LocaleProvider';
 
 const GH_PAGES_BASE = '/shopping-list';
 const isGhPagesHost =
@@ -30,6 +32,7 @@ const linking = {
         },
       },
       ListDetails: 'lists/:listId',
+      Language: 'settings/language',
     },
   },
   getStateFromPath: (path, options) => {
@@ -58,13 +61,23 @@ const linking = {
   },
 };
 
+function AppContainer() {
+  const { locale } = useLocale();
+
+  return (
+    <NavigationContainer linking={linking} key={locale}>
+      <RootNavigator />
+      <StatusBar style="auto" />
+    </NavigationContainer>
+  );
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
-      <NavigationContainer linking={linking}>
-        <RootNavigator />
-        <StatusBar style="auto" />
-      </NavigationContainer>
+      <LocaleProvider>
+        <AppContainer />
+      </LocaleProvider>
     </SafeAreaProvider>
   );
 }
