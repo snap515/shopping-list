@@ -75,6 +75,10 @@ export default {
   },
   listDetails: {
     title: 'Список',
+    membersTitle: 'Участники',
+    membersEmpty: 'Пока нет участников.',
+    ownerBadge: 'Владелец',
+    youSuffix: '(это вы)',
   },
   items: {
     add: {

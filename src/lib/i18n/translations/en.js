@@ -75,6 +75,10 @@ export default {
   },
   listDetails: {
     title: 'List details',
+    membersTitle: 'Shared with',
+    membersEmpty: 'No members yet.',
+    ownerBadge: 'Owner',
+    youSuffix: '(you)',
   },
   items: {
     add: {

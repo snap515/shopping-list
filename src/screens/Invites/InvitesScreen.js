@@ -24,6 +24,7 @@ export default function InvitesScreen() {
         inviteId: invite.id,
         listId: invite.listId,
         userUid: auth.currentUser?.uid || 'unknown',
+        userEmail: auth.currentUser?.email || '',
       });
     } catch (acceptError) {
       setError(t('invites.accept.error'));

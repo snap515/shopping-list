@@ -5,6 +5,7 @@ import {
   addListItem,
   createInvite,
   deleteListItem,
+  subscribeToList,
   subscribeToListItems,
   toggleListItem,
 } from '../../lib/firestore';
@@ -16,8 +17,10 @@ export default function ListDetailsScreen({ route }) {
   const [itemText, setItemText] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [error, setError] = useState('');
+  const [members, setMembers] = useState([]);
+  const [listOwnerUid, setListOwnerUid] = useState(ownerUid);
   const inputRef = useRef(null);
-  const isOwner = auth.currentUser?.uid === ownerUid;
+  const isOwner = auth.currentUser?.uid === listOwnerUid;
 
   useEffect(() => {
     if (!listId) {
@@ -25,6 +28,28 @@ export default function ListDetailsScreen({ route }) {
     }
 
     return subscribeToListItems(listId, setItems);
+  }, [listId]);
+
+  useEffect(() => {
+    if (!listId) {
+      return undefined;
+    }
+
+    return subscribeToList(listId, (listDoc) => {
+      if (!listDoc) {
+        setMembers([]);
+        return;
+      }
+
+      setListOwnerUid(listDoc.ownerUid);
+      const memberUids = listDoc.memberUids || [];
+      const memberEmails = listDoc.memberEmails || {};
+      const nextMembers = memberUids.map((uid) => ({
+        id: uid,
+        email: memberEmails[uid],
+      }));
+      setMembers(nextMembers);
+    });
   }, [listId]);
 
   const sortedItems = useMemo(() => {
@@ -105,6 +130,26 @@ export default function ListDetailsScreen({ route }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('listDetails.title')}</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('listDetails.membersTitle')}</Text>
+        {members.length === 0 ? (
+          <Text style={styles.mutedText}>{t('listDetails.membersEmpty')}</Text>
+        ) : (
+          members.map((member) => (
+            <View key={member.id} style={styles.memberRow}>
+              <Text style={styles.memberText}>
+                {member.email || member.id}
+                {member.id === auth.currentUser?.uid
+                  ? ` ${t('listDetails.youSuffix')}`
+                  : ''}
+              </Text>
+              {member.id === listOwnerUid ? (
+                <Text style={styles.memberBadge}>{t('listDetails.ownerBadge')}</Text>
+              ) : null}
+            </View>
+          ))
+        )}
+      </View>
       {isOwner ? (
         <View style={styles.inviteRow}>
           <TextInput
@@ -184,6 +229,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginBottom: 12,
+  },
+  section: {
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  mutedText: {
+    color: '#666',
+  },
+  memberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderColor: '#e1e1e1',
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  memberText: {
+    fontSize: 14,
+  },
+  memberBadge: {
+    color: '#1f5eff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   input: {
     flex: 1,
