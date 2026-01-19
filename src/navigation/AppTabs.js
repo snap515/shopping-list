@@ -38,7 +38,6 @@ export default function AppTabs() {
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.muted,
       })}
-      key={locale}
     >
       <Tab.Screen name="Lists" component={ListsScreen} />
       <Tab.Screen name="Invites" component={InvitesScreen} />
