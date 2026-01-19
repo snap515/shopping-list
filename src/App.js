@@ -9,7 +9,10 @@ import { ThemeProvider, useTheme } from './lib/theme/ThemeProvider';
 
 const GH_PAGES_BASE = '/shopping-list';
 const isGhPagesHost =
-  typeof window !== 'undefined' && window.location.host.endsWith('github.io');
+  typeof window !== 'undefined' &&
+  window.location &&
+  window.location.host &&
+  window.location.host.endsWith('github.io');
 const useHashRouting = isGhPagesHost;
 
 const baseUrl = Linking.createURL('/');
