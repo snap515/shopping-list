@@ -69,7 +69,6 @@ function AppContainer() {
   return (
     <NavigationContainer
       linking={linking}
-      key={`${locale}-${theme.id}`}
       theme={{
         dark: theme.id === 'dark',
         colors: {

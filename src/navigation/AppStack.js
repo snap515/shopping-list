@@ -12,7 +12,7 @@ export default function AppStack() {
   const { locale } = useLocale();
 
   return (
-    <Stack.Navigator key={locale}>
+    <Stack.Navigator>
       <Stack.Screen name="Tabs" component={AppTabs} options={{ headerShown: false }} />
       <Stack.Screen
         name="ListDetails"

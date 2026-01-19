@@ -29,7 +29,7 @@ export default function InvitesScreen() {
         userEmail: auth.currentUser?.email || '',
       });
     } catch (acceptError) {
-      setError(t('invites.accept.error'));
+      setError(t('invites.acceptError'));
     }
   };
 
@@ -38,7 +38,7 @@ export default function InvitesScreen() {
     try {
       await declineInvite(inviteId);
     } catch (declineError) {
-      setError(t('invites.decline.error'));
+      setError(t('invites.declineError'));
     }
   };
 
