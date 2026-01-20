@@ -68,16 +68,10 @@ const linking = {
 function AppContainer() {
   const { locale } = useLocale();
   const { theme } = useTheme();
-  const [navKey, setNavKey] = React.useState(0);
-
-  React.useEffect(() => {
-    setNavKey((prev) => prev + 1);
-  }, [locale]);
 
   return (
     <NavigationContainer
       linking={linking}
-      key={navKey}
       theme={{
         dark: theme.id === 'dark',
         colors: {

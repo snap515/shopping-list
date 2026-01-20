@@ -5,6 +5,7 @@ import { getAuthErrorKey } from '../../lib/authErrors';
 import { createUserProfile } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
+import { useLocale } from '../../lib/i18n/LocaleProvider';
 
 export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -13,6 +14,7 @@ export default function RegisterScreen({ navigation }) {
   const [error, setError] = useState('');
   const passwordRef = useRef(null);
   const { theme } = useTheme();
+  const { locale } = useLocale();
 
   const handleRegister = async () => {
     setError('');

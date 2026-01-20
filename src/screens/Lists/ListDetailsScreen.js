@@ -11,6 +11,7 @@ import {
 } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
+import { useLocale } from '../../lib/i18n/LocaleProvider';
 
 export default function ListDetailsScreen({ route }) {
   const { listId, ownerUid, listName } = route.params || {};
@@ -23,6 +24,7 @@ export default function ListDetailsScreen({ route }) {
   const inputRef = useRef(null);
   const isOwner = auth.currentUser?.uid === listOwnerUid;
   const { theme } = useTheme();
+  const { locale } = useLocale();
 
   useEffect(() => {
     if (!listId) {

@@ -4,11 +4,13 @@ import { auth } from '../../lib/firebase';
 import { acceptInvite, declineInvite, subscribeToIncomingInvites } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
+import { useLocale } from '../../lib/i18n/LocaleProvider';
 
 export default function InvitesScreen() {
   const [invites, setInvites] = useState([]);
   const [error, setError] = useState('');
   const { theme } = useTheme();
+  const { locale } = useLocale();
 
   useEffect(() => {
     const email = auth.currentUser?.email;
