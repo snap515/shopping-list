@@ -1,60 +1,56 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import ListsScreen from '../screens/Lists/ListsScreen.js';
 import InvitesScreen from '../screens/Invites/InvitesScreen.js';
 import SettingsScreen from '../screens/Settings/SettingsScreen.js';
 import { t } from '../lib/i18n';
-import { useLocale } from '../lib/i18n/LocaleProvider';
 import { useTheme } from '../lib/theme/ThemeProvider';
 
 const Tab = createBottomTabNavigator();
 
 export default function AppTabs() {
-  const { locale } = useLocale();
   const { theme } = useTheme();
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarLabel: ({ color }) => (
-          <Text style={[styles.tabLabel, { color }]}>
-            {route.name === 'Lists' && t('tabs.lists')}
-            {route.name === 'Invites' && t('tabs.invites')}
-            {route.name === 'Settings' && t('tabs.settings')}
-          </Text>
-        ),
-        headerTitle:
-          route.name === 'Lists'
-            ? t('tabs.lists')
-            : route.name === 'Invites'
-              ? t('tabs.invites')
-              : t('tabs.settings'),
-        tabBarStyle: [
-          styles.tabBar,
-          { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border },
-        ],
-        tabBarItemStyle: styles.tabBarItem,
+        tabBarIcon: ({ color, size, focused }) => {
+          const iconName =
+            route.name === 'Lists'
+              ? focused
+                ? 'list'
+                : 'list-outline'
+              : route.name === 'Invites'
+                ? focused
+                  ? 'mail'
+                  : 'mail-outline'
+                : focused
+                  ? 'settings'
+                  : 'settings-outline';
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarStyle: { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.muted,
       })}
     >
-      <Tab.Screen name="Lists" component={ListsScreen} />
-      <Tab.Screen name="Invites" component={InvitesScreen} />
-      <Tab.Screen name="Settings" component={SettingsScreen} />
+      <Tab.Screen
+        name="Lists"
+        component={ListsScreen}
+        options={{ title: t('tabs.lists'), tabBarLabel: t('tabs.lists') }}
+      />
+      <Tab.Screen
+        name="Invites"
+        component={InvitesScreen}
+        options={{ title: t('tabs.invites'), tabBarLabel: t('tabs.invites') }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ title: t('tabs.settings'), tabBarLabel: t('tabs.settings') }}
+      />
     </Tab.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    height: 56,
-  },
-  tabBarItem: {
-    paddingVertical: 6,
-  },
-  tabLabel: {
-    fontSize: 12,
-    lineHeight: 14,
-  },
-});
