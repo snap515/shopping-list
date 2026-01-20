@@ -4,6 +4,7 @@ import { loginWithEmail, resetPassword } from '../../lib/auth';
 import { getAuthErrorKey } from '../../lib/authErrors';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
+import { useLocale } from '../../lib/i18n/LocaleProvider';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -13,6 +14,7 @@ export default function LoginScreen({ navigation }) {
   const [info, setInfo] = useState('');
   const passwordRef = useRef(null);
   const { theme } = useTheme();
+  const { locale } = useLocale();
 
   const handleLogin = async () => {
     setError('');

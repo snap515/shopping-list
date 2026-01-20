@@ -13,6 +13,7 @@ import { auth } from '../../lib/firebase';
 import { createList, deleteList, renameList, subscribeToUserLists } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
+import { useLocale } from '../../lib/i18n/LocaleProvider';
 
 export default function ListsScreen({ navigation }) {
   const [lists, setLists] = useState([]);
@@ -21,6 +22,7 @@ export default function ListsScreen({ navigation }) {
   const [editingListId, setEditingListId] = useState(null);
   const [editingName, setEditingName] = useState('');
   const { theme } = useTheme();
+  const { locale } = useLocale();
 
   useEffect(() => {
     const uid = auth.currentUser?.uid;
