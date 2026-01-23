@@ -4,6 +4,8 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import AuthStack from './AuthStack';
 import AppStack from './AppStack';
+import { ensureUserEmailLower } from '../lib/firestore';
+import { registerForPushNotificationsAsync, saveUserPushToken } from '../lib/notifications';
 
 export default function RootNavigator() {
   const [user, setUser] = useState(null);
@@ -17,6 +19,28 @@ export default function RootNavigator() {
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      return undefined;
+    }
+
+    let isActive = true;
+
+    const registerPush = async () => {
+      await ensureUserEmailLower({ uid: user.uid, email: user.email });
+      const token = await registerForPushNotificationsAsync();
+      if (isActive && token) {
+        await saveUserPushToken({ uid: user.uid, token });
+      }
+    };
+
+    registerPush();
+
+    return () => {
+      isActive = false;
+    };
+  }, [user?.uid]);
 
   if (isInitializing) {
     return (
