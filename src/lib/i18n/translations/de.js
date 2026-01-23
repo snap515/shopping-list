@@ -52,6 +52,10 @@ export default {
     },
   },
   lists: {
+    deleted: {
+      title: 'Liste gel?scht',
+      message: 'Diese Liste wurde gel?scht.',
+    },
     title: 'Meine Listen',
     create: {
       emptyName: 'Listennamen eingeben.',
@@ -98,6 +102,9 @@ export default {
     create: {
       empty: 'E-Mail für Einladung eingeben.',
       error: 'Einladung konnte nicht gesendet werden.',
+      alreadyMember: 'Dieser Nutzer ist bereits in der Liste.',
+      alreadyPending: 'Diese Einladung ist bereits ausstehend.',
+      permissionDenied: 'Sie haben keine Berechtigung, Einladungen zu senden.',
       placeholder: 'Per E-Mail einladen',
       submit: 'Einladen',
     },
@@ -133,5 +140,6 @@ export default {
     delete: 'Löschen',
     cancel: 'Abbrechen',
     save: 'Speichern',
+    ok: 'OK',
   },
 };

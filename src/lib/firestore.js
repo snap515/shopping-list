@@ -5,9 +5,11 @@ import {
   deleteDoc,
   doc,
   documentId,
+  getDoc,
   getDocs,
   onSnapshot,
   query,
+  runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -89,16 +91,51 @@ export const getUsersByIds = async (uids) => {
   }));
 };
 
-export const createInvite = async ({ listId, listName, fromUid, fromEmail, toEmail }) =>
-  addDoc(invitesCollection, {
-    listId,
-    listName,
-    fromUid,
-    fromEmailLower: fromEmail.toLowerCase(),
-    toEmailLower: toEmail.toLowerCase(),
-    status: 'pending',
-    createdAt: serverTimestamp(),
+export const createInvite = async ({ listId, listName, fromUid, fromEmail, toEmail }) => {
+  const toEmailLower = toEmail.toLowerCase();
+  const fromEmailLower = fromEmail ? fromEmail.toLowerCase() : '';
+  const inviteId = `${listId}_${encodeURIComponent(toEmailLower)}`;
+  const listRef = doc(db, 'lists', listId);
+  const listSnap = await getDoc(listRef);
+
+  if (listSnap.exists()) {
+    const listData = listSnap.data();
+    const memberEmails = listData.memberEmails || {};
+    const memberEmailValues = Object.values(memberEmails).map((email) =>
+      typeof email === 'string' ? email.toLowerCase() : email
+    );
+
+    if (memberEmailValues.includes(toEmailLower)) {
+      const error = new Error('invite/already-member');
+      error.code = 'invite/already-member';
+      throw error;
+    }
+  }
+
+  const inviteRef = doc(db, 'invites', inviteId);
+
+  return runTransaction(db, async (transaction) => {
+    const existingInvite = await transaction.get(inviteRef);
+    if (existingInvite.exists()) {
+      const existingData = existingInvite.data();
+      if (existingData.status === 'pending') {
+        const error = new Error('invite/already-pending');
+        error.code = 'invite/already-pending';
+        throw error;
+      }
+    }
+
+    transaction.set(inviteRef, {
+      listId,
+      listName,
+      fromUid,
+      fromEmailLower,
+      toEmailLower,
+      status: 'pending',
+      createdAt: serverTimestamp(),
+    });
   });
+};
 
 export const subscribeToIncomingInvites = (toEmailLower, onChange) => {
   const invitesQuery = query(

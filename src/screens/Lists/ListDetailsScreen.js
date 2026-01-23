@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { auth } from '../../lib/firebase';
 import {
@@ -14,7 +14,7 @@ import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
 import { useLocale } from '../../lib/i18n/LocaleProvider';
 
-export default function ListDetailsScreen({ route }) {
+export default function ListDetailsScreen({ route, navigation }) {
   const { listId, ownerUid, listName } = route.params || {};
   const [items, setItems] = useState([]);
   const [itemText, setItemText] = useState('');
@@ -22,8 +22,11 @@ export default function ListDetailsScreen({ route }) {
   const [itemError, setItemError] = useState('');
   const [inviteError, setInviteError] = useState('');
   const [itemActionErrors, setItemActionErrors] = useState({});
+  const [isInviting, setIsInviting] = useState(false);
   const [members, setMembers] = useState([]);
   const [listOwnerUid, setListOwnerUid] = useState(ownerUid);
+  const [listExists, setListExists] = useState(true);
+  const [hasShownDeletedNotice, setHasShownDeletedNotice] = useState(false);
   const inputRef = useRef(null);
   const isOwner = auth.currentUser?.uid === listOwnerUid;
   const { theme } = useTheme();
@@ -38,12 +41,12 @@ export default function ListDetailsScreen({ route }) {
   );
 
   useEffect(() => {
-    if (!listId) {
+    if (!listId || !listExists) {
       return undefined;
     }
 
     return subscribeToListItems(listId, setItems);
-  }, [listId]);
+  }, [listId, listExists]);
 
   useEffect(() => {
     if (!listId) {
@@ -53,9 +56,11 @@ export default function ListDetailsScreen({ route }) {
     return subscribeToList(listId, (listDoc) => {
       if (!listDoc) {
         setMembers([]);
+        setListExists(false);
         return;
       }
 
+      setListExists(true);
       setListOwnerUid(listDoc.ownerUid);
       const memberUids = listDoc.memberUids || [];
       const memberEmails = listDoc.memberEmails || {};
@@ -66,6 +71,25 @@ export default function ListDetailsScreen({ route }) {
       setMembers(nextMembers);
     });
   }, [listId]);
+
+  useEffect(() => {
+    if (listExists) {
+      return;
+    }
+
+    if (!hasShownDeletedNotice) {
+      setHasShownDeletedNotice(true);
+      Alert.alert(t('lists.deleted.title'), t('lists.deleted.message'), [
+        { text: t('common.ok') },
+      ]);
+    }
+
+    if (navigation?.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Tabs');
+    }
+  }, [hasShownDeletedNotice, listExists, navigation]);
 
   const sortedItems = useMemo(() => {
     const toTimestamp = (value) => {
@@ -143,6 +167,10 @@ export default function ListDetailsScreen({ route }) {
   };
 
   const handleInvite = async () => {
+    if (isInviting) {
+      return;
+    }
+
     const trimmedEmail = inviteEmail.trim();
     if (!trimmedEmail) {
       setInviteError(t('invites.create.empty'));
@@ -150,6 +178,7 @@ export default function ListDetailsScreen({ route }) {
     }
 
     setInviteError('');
+    setIsInviting(true);
     try {
       await createInvite({
         listId,
@@ -160,7 +189,18 @@ export default function ListDetailsScreen({ route }) {
       });
       setInviteEmail('');
     } catch (inviteError) {
-      setInviteError(t('invites.create.error'));
+      const code = inviteError?.code;
+      if (code === 'invite/already-member') {
+        setInviteError(t('invites.create.alreadyMember'));
+      } else if (code === 'invite/already-pending') {
+        setInviteError(t('invites.create.alreadyPending'));
+      } else if (code === 'permission-denied') {
+        setInviteError(t('invites.create.permissionDenied'));
+      } else {
+        setInviteError(t('invites.create.error'));
+      }
+    } finally {
+      setIsInviting(false);
     }
   };
 
@@ -216,14 +256,15 @@ export default function ListDetailsScreen({ route }) {
               keyboardType="email-address"
               placeholderTextColor={theme.colors.muted}
             />
-            <TouchableOpacity
-              style={[styles.secondaryButton, { borderColor: theme.colors.primary }]}
-              onPress={handleInvite}
-            >
-              <Text style={[styles.secondaryButtonText, { color: theme.colors.primary }]}>
-                {t('invites.create.submit')}
-              </Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.secondaryButton, { borderColor: theme.colors.primary }]}
+            onPress={handleInvite}
+            disabled={isInviting}
+          >
+            <Text style={[styles.secondaryButtonText, { color: theme.colors.primary }]}>
+              {t('invites.create.submit')}
+            </Text>
+          </TouchableOpacity>
           </View>
           {inviteError ? (
             <Text style={[styles.errorText, { color: theme.colors.danger }]}>
