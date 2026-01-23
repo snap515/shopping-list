@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { auth } from '../../lib/firebase';
 import { acceptInvite, declineInvite, subscribeToIncomingInvites } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
@@ -8,9 +9,15 @@ import { useLocale } from '../../lib/i18n/LocaleProvider';
 
 export default function InvitesScreen() {
   const [invites, setInvites] = useState([]);
-  const [error, setError] = useState('');
+  const [inviteErrors, setInviteErrors] = useState({});
   const { theme } = useTheme();
   const { locale } = useLocale();
+
+  useFocusEffect(
+    useCallback(() => {
+      setInviteErrors({});
+    }, [])
+  );
 
   useEffect(() => {
     const email = auth.currentUser?.email;
@@ -22,7 +29,14 @@ export default function InvitesScreen() {
   }, []);
 
   const handleAccept = async (invite) => {
-    setError('');
+    setInviteErrors((prev) => {
+      if (!prev[invite.id]) {
+        return prev;
+      }
+      const next = { ...prev };
+      delete next[invite.id];
+      return next;
+    });
     try {
       await acceptInvite({
         inviteId: invite.id,
@@ -31,25 +45,29 @@ export default function InvitesScreen() {
         userEmail: auth.currentUser?.email || '',
       });
     } catch (acceptError) {
-      setError(t('invites.acceptError'));
+      setInviteErrors((prev) => ({ ...prev, [invite.id]: t('invites.acceptError') }));
     }
   };
 
   const handleDecline = async (inviteId) => {
-    setError('');
+    setInviteErrors((prev) => {
+      if (!prev[inviteId]) {
+        return prev;
+      }
+      const next = { ...prev };
+      delete next[inviteId];
+      return next;
+    });
     try {
       await declineInvite(inviteId);
     } catch (declineError) {
-      setError(t('invites.declineError'));
+      setInviteErrors((prev) => ({ ...prev, [inviteId]: t('invites.declineError') }));
     }
   };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Text style={[styles.title, { color: theme.colors.text }]}>{t('invites.title')}</Text>
-      {error ? (
-        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{error}</Text>
-      ) : null}
       <FlatList
         data={invites}
         keyExtractor={(item) => item.id}
@@ -88,6 +106,11 @@ export default function InvitesScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+            {inviteErrors[item.id] ? (
+              <Text style={[styles.errorText, { color: theme.colors.danger }]}>
+                {inviteErrors[item.id]}
+              </Text>
+            ) : null}
           </View>
         )}
       />
