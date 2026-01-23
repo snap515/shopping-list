@@ -53,9 +53,14 @@ export default {
   },
   lists: {
     title: 'Your lists',
+    deleted: {
+      title: 'List deleted',
+      message: 'This list was deleted.',
+    },
     create: {
       emptyName: 'Enter a list name.',
       error: 'Could not create the list.',
+      permissionDenied: 'You do not have permission to create a list.',
       placeholder: 'New list name',
       submit: 'Add',
     },
@@ -98,6 +103,9 @@ export default {
     create: {
       empty: 'Enter an email to invite.',
       error: 'Could not send the invite.',
+      alreadyMember: 'This user is already in the list.',
+      alreadyPending: 'This invite is already pending.',
+      permissionDenied: 'You do not have permission to send invites.',
       placeholder: 'Invite by email',
       submit: 'Invite',
     },
@@ -133,5 +141,6 @@ export default {
     delete: 'Delete',
     cancel: 'Cancel',
     save: 'Save',
+    ok: 'OK',
   },
 };

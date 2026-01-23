@@ -60,7 +60,11 @@ export default function ListsScreen({ navigation }) {
       });
       setListName('');
     } catch (createError) {
-      setCreateError(t('lists.create.error'));
+      if (createError?.code === 'permission-denied') {
+        setCreateError(t('lists.create.permissionDenied'));
+      } else {
+        setCreateError(t('lists.create.error'));
+      }
     }
   };
 
