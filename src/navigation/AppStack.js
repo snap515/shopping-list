@@ -17,12 +17,12 @@ export default function AppStack() {
       <Stack.Screen
         name="ListDetails"
         component={ListDetailsScreen}
-        options={{ title: t('listDetails.title') }}
+        options={{ title: t('listDetails.title'), headerBackTitle: t('tabs.lists') }}
       />
       <Stack.Screen
         name="Language"
         component={LanguageScreen}
-        options={{ title: t('settings.language.title') }}
+        options={{ title: t('settings.language.title'), headerBackTitle: t('tabs.settings') }}
       />
     </Stack.Navigator>
   );
