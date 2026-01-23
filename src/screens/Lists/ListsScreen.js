@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { auth } from '../../lib/firebase';
 import { createList, deleteList, renameList, subscribeToUserLists } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
@@ -18,11 +19,21 @@ import { useLocale } from '../../lib/i18n/LocaleProvider';
 export default function ListsScreen({ navigation }) {
   const [lists, setLists] = useState([]);
   const [listName, setListName] = useState('');
-  const [error, setError] = useState('');
+  const [createError, setCreateError] = useState('');
+  const [renameErrors, setRenameErrors] = useState({});
+  const [deleteErrors, setDeleteErrors] = useState({});
   const [editingListId, setEditingListId] = useState(null);
   const [editingName, setEditingName] = useState('');
   const { theme } = useTheme();
   const { locale } = useLocale();
+
+  useFocusEffect(
+    useCallback(() => {
+      setCreateError('');
+      setRenameErrors({});
+      setDeleteErrors({});
+    }, [])
+  );
 
   useEffect(() => {
     const uid = auth.currentUser?.uid;
@@ -36,11 +47,11 @@ export default function ListsScreen({ navigation }) {
   const handleCreateList = async () => {
     const trimmedName = listName.trim();
     if (!trimmedName) {
-      setError(t('lists.create.emptyName'));
+      setCreateError(t('lists.create.emptyName'));
       return;
     }
 
-    setError('');
+    setCreateError('');
     try {
       await createList({
         name: trimmedName,
@@ -49,16 +60,32 @@ export default function ListsScreen({ navigation }) {
       });
       setListName('');
     } catch (createError) {
-      setError(t('lists.create.error'));
+      setCreateError(t('lists.create.error'));
     }
   };
 
   const startEditing = (list) => {
     setEditingListId(list.id);
     setEditingName(list.name);
+    setRenameErrors((prev) => {
+      if (!prev[list.id]) {
+        return prev;
+      }
+      const next = { ...prev };
+      delete next[list.id];
+      return next;
+    });
   };
 
   const cancelEditing = () => {
+    setRenameErrors((prev) => {
+      if (!editingListId || !prev[editingListId]) {
+        return prev;
+      }
+      const next = { ...prev };
+      delete next[editingListId];
+      return next;
+    });
     setEditingListId(null);
     setEditingName('');
   };
@@ -66,24 +93,39 @@ export default function ListsScreen({ navigation }) {
   const handleRename = async (listId) => {
     const trimmedName = editingName.trim();
     if (!trimmedName) {
-      setError(t('lists.rename.emptyName'));
+      setRenameErrors((prev) => ({ ...prev, [listId]: t('lists.rename.emptyName') }));
       return;
     }
 
-    setError('');
+    setRenameErrors((prev) => {
+      if (!prev[listId]) {
+        return prev;
+      }
+      const next = { ...prev };
+      delete next[listId];
+      return next;
+    });
     try {
       await renameList(listId, trimmedName);
       cancelEditing();
     } catch (renameError) {
-      setError(t('lists.rename.error'));
+      setRenameErrors((prev) => ({ ...prev, [listId]: t('lists.rename.error') }));
     }
   };
 
   const runDelete = async (listId) => {
+    setDeleteErrors((prev) => {
+      if (!prev[listId]) {
+        return prev;
+      }
+      const next = { ...prev };
+      delete next[listId];
+      return next;
+    });
     try {
       await deleteList(listId);
     } catch (deleteError) {
-      setError(t('lists.delete.error'));
+      setDeleteErrors((prev) => ({ ...prev, [listId]: t('lists.delete.error') }));
     }
   };
 
@@ -133,8 +175,10 @@ export default function ListsScreen({ navigation }) {
           <Text style={styles.primaryButtonText}>{t('lists.create.submit')}</Text>
         </TouchableOpacity>
       </View>
-      {error ? (
-        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{error}</Text>
+      {createError ? (
+        <Text style={[styles.errorText, { color: theme.colors.danger }]}>
+          {createError}
+        </Text>
       ) : null}
       <FlatList
         data={lists}
@@ -178,6 +222,11 @@ export default function ListsScreen({ navigation }) {
                     {item.name}
                   </Text>
                 )}
+                {isEditing && renameErrors[item.id] ? (
+                  <Text style={[styles.errorText, { color: theme.colors.danger }]}>
+                    {renameErrors[item.id]}
+                  </Text>
+                ) : null}
                 <Text style={[styles.listMeta, { color: theme.colors.muted }]}>
                   {t('lists.membersCount')} {item.memberUids?.length || 0}
                 </Text>
@@ -223,6 +272,11 @@ export default function ListsScreen({ navigation }) {
                       </TouchableOpacity>
                     </>
                   )}
+                  {deleteErrors[item.id] ? (
+                    <Text style={[styles.errorText, { color: theme.colors.danger }]}>
+                      {deleteErrors[item.id]}
+                    </Text>
+                  ) : null}
                 </View>
               ) : null}
             </View>

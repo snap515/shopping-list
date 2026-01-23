@@ -1,5 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { registerWithEmail } from '../../lib/auth';
 import { getAuthErrorKey } from '../../lib/authErrors';
 import { createUserProfile } from '../../lib/firestore';
@@ -11,13 +12,22 @@ export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [error, setError] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorTarget, setErrorTarget] = useState('');
   const passwordRef = useRef(null);
   const { theme } = useTheme();
   const { locale } = useLocale();
 
+  useFocusEffect(
+    useCallback(() => {
+      setErrorMessage('');
+      setErrorTarget('');
+    }, [])
+  );
+
   const handleRegister = async () => {
-    setError('');
+    setErrorMessage('');
+    setErrorTarget('');
     try {
       const userCredential = await registerWithEmail(email.trim(), password);
       await createUserProfile({
@@ -25,7 +35,13 @@ export default function RegisterScreen({ navigation }) {
         email: userCredential.user.email,
       });
     } catch (registerError) {
-      setError(t(getAuthErrorKey(registerError?.code)));
+      const code = registerError?.code;
+      const target =
+        code === 'auth/invalid-email' || code === 'auth/email-already-in-use'
+          ? 'email'
+          : 'password';
+      setErrorMessage(t(getAuthErrorKey(code)));
+      setErrorTarget(target);
     }
   };
 
@@ -49,6 +65,11 @@ export default function RegisterScreen({ navigation }) {
         textContentType="emailAddress"
         placeholderTextColor={theme.colors.muted}
       />
+      {errorTarget === 'email' ? (
+        <Text style={[styles.errorText, { color: theme.colors.danger }]}>
+          {errorMessage}
+        </Text>
+      ) : null}
       <Text style={[styles.label, { color: theme.colors.text }]}>
         {t('auth.password.label')}
       </Text>
@@ -74,8 +95,10 @@ export default function RegisterScreen({ navigation }) {
           </Text>
         </TouchableOpacity>
       </View>
-      {error ? (
-        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{error}</Text>
+      {errorTarget === 'password' ? (
+        <Text style={[styles.errorText, { color: theme.colors.danger }]}>
+          {errorMessage}
+        </Text>
       ) : null}
       <TouchableOpacity
         style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}

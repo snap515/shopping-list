@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { changePassword, logout } from '../../lib/auth';
 import { auth } from '../../lib/firebase';
 import { t } from '../../lib/i18n';
@@ -20,6 +21,13 @@ export default function SettingsScreen({ navigation }) {
   const userEmail = auth.currentUser?.email || t('auth.anonymous');
   const { locale } = useLocale();
   const { theme, themeId, setThemeId } = useTheme();
+
+  useFocusEffect(
+    useCallback(() => {
+      setError('');
+      setInfo('');
+    }, [])
+  );
 
   const handleChangePassword = async () => {
     const trimmedPassword = newPassword.trim();
@@ -79,12 +87,6 @@ export default function SettingsScreen({ navigation }) {
         </View>
         <Text style={[styles.languageChevron, { color: theme.colors.muted }]}>›</Text>
       </TouchableOpacity>
-      {error ? (
-        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{error}</Text>
-      ) : null}
-      {info ? (
-        <Text style={[styles.infoText, { color: theme.colors.primary }]}>{info}</Text>
-      ) : null}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           {t('auth.change.title')}
@@ -111,6 +113,12 @@ export default function SettingsScreen({ navigation }) {
             </Text>
           </TouchableOpacity>
         </View>
+        {error ? (
+          <Text style={[styles.errorText, { color: theme.colors.danger }]}>{error}</Text>
+        ) : null}
+        {info ? (
+          <Text style={[styles.infoText, { color: theme.colors.primary }]}>{info}</Text>
+        ) : null}
         <TouchableOpacity
           style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
           onPress={handleChangePassword}

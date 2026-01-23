@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { auth } from '../../lib/firebase';
 import {
   addListItem,
@@ -18,13 +19,23 @@ export default function ListDetailsScreen({ route }) {
   const [items, setItems] = useState([]);
   const [itemText, setItemText] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
-  const [error, setError] = useState('');
+  const [itemError, setItemError] = useState('');
+  const [inviteError, setInviteError] = useState('');
+  const [itemActionErrors, setItemActionErrors] = useState({});
   const [members, setMembers] = useState([]);
   const [listOwnerUid, setListOwnerUid] = useState(ownerUid);
   const inputRef = useRef(null);
   const isOwner = auth.currentUser?.uid === listOwnerUid;
   const { theme } = useTheme();
   const { locale } = useLocale();
+
+  useFocusEffect(
+    useCallback(() => {
+      setItemError('');
+      setInviteError('');
+      setItemActionErrors({});
+    }, [])
+  );
 
   useEffect(() => {
     if (!listId) {
@@ -75,11 +86,11 @@ export default function ListDetailsScreen({ route }) {
   const handleAddItem = async () => {
     const trimmedText = itemText.trim();
     if (!trimmedText) {
-      setError(t('items.add.empty'));
+      setItemError(t('items.add.empty'));
       return;
     }
 
-    setError('');
+    setItemError('');
     try {
       await addListItem({
         listId,
@@ -89,34 +100,56 @@ export default function ListDetailsScreen({ route }) {
       setItemText('');
       inputRef.current?.focus();
     } catch (addError) {
-      setError(t('items.add.error'));
+      setItemError(t('items.add.error'));
     }
   };
 
   const handleToggle = async (item) => {
     try {
       await toggleListItem(listId, item.id, !item.done);
+      setItemActionErrors((prev) => {
+        if (!prev[item.id]) {
+          return prev;
+        }
+        const next = { ...prev };
+        delete next[item.id];
+        return next;
+      });
     } catch (toggleError) {
-      setError(t('items.toggle.error'));
+      setItemActionErrors((prev) => ({
+        ...prev,
+        [item.id]: t('items.toggle.error'),
+      }));
     }
   };
 
   const handleDelete = async (itemId) => {
     try {
       await deleteListItem(listId, itemId);
+      setItemActionErrors((prev) => {
+        if (!prev[itemId]) {
+          return prev;
+        }
+        const next = { ...prev };
+        delete next[itemId];
+        return next;
+      });
     } catch (deleteError) {
-      setError(t('items.delete.error'));
+      setItemActionErrors((prev) => ({
+        ...prev,
+        [itemId]: t('items.delete.error'),
+      }));
     }
   };
 
   const handleInvite = async () => {
     const trimmedEmail = inviteEmail.trim();
     if (!trimmedEmail) {
-      setError(t('invites.create.empty'));
+      setInviteError(t('invites.create.empty'));
       return;
     }
 
-    setError('');
+    setInviteError('');
     try {
       await createInvite({
         listId,
@@ -127,7 +160,7 @@ export default function ListDetailsScreen({ route }) {
       });
       setInviteEmail('');
     } catch (inviteError) {
-      setError(t('invites.create.error'));
+      setInviteError(t('invites.create.error'));
     }
   };
 
@@ -169,28 +202,35 @@ export default function ListDetailsScreen({ route }) {
         )}
       </View>
       {isOwner ? (
-        <View style={styles.inviteRow}>
-          <TextInput
-            placeholder={t('invites.create.placeholder')}
-            style={[
-              styles.input,
-              { borderColor: theme.colors.border, color: theme.colors.text },
-            ]}
-            value={inviteEmail}
-            onChangeText={setInviteEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            placeholderTextColor={theme.colors.muted}
-          />
-          <TouchableOpacity
-            style={[styles.secondaryButton, { borderColor: theme.colors.primary }]}
-            onPress={handleInvite}
-          >
-            <Text style={[styles.secondaryButtonText, { color: theme.colors.primary }]}>
-              {t('invites.create.submit')}
+        <>
+          <View style={styles.inviteRow}>
+            <TextInput
+              placeholder={t('invites.create.placeholder')}
+              style={[
+                styles.input,
+                { borderColor: theme.colors.border, color: theme.colors.text },
+              ]}
+              value={inviteEmail}
+              onChangeText={setInviteEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              placeholderTextColor={theme.colors.muted}
+            />
+            <TouchableOpacity
+              style={[styles.secondaryButton, { borderColor: theme.colors.primary }]}
+              onPress={handleInvite}
+            >
+              <Text style={[styles.secondaryButtonText, { color: theme.colors.primary }]}>
+                {t('invites.create.submit')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {inviteError ? (
+            <Text style={[styles.errorText, { color: theme.colors.danger }]}>
+              {inviteError}
             </Text>
-          </TouchableOpacity>
-        </View>
+          ) : null}
+        </>
       ) : null}
       <View style={styles.formRow}>
         <TextInput
@@ -213,49 +253,56 @@ export default function ListDetailsScreen({ route }) {
           <Text style={styles.primaryButtonText}>{t('items.add.submit')}</Text>
         </TouchableOpacity>
       </View>
-      {error ? (
-        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{error}</Text>
+      {itemError ? (
+        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{itemError}</Text>
       ) : null}
       <FlatList
         data={sortedItems}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <View
-            style={[
-              styles.itemRow,
-              { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
-            ]}
-          >
-            <TouchableOpacity
-              style={styles.itemToggle}
-              onPress={() => handleToggle(item)}
+          <View>
+            <View
+              style={[
+                styles.itemRow,
+                { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+              ]}
             >
-              <View
-                style={[
-                  styles.checkbox,
-                  { borderColor: theme.colors.primary },
-                  item.done && { backgroundColor: theme.colors.primary },
-                ]}
-              />
-              <Text
-                style={[
-                  styles.itemText,
-                  { color: theme.colors.text },
-                  item.done && { color: theme.colors.muted, textDecorationLine: 'line-through' },
-                ]}
+              <TouchableOpacity
+                style={styles.itemToggle}
+                onPress={() => handleToggle(item)}
               >
-                {item.text}
+                <View
+                  style={[
+                    styles.checkbox,
+                    { borderColor: theme.colors.primary },
+                    item.done && { backgroundColor: theme.colors.primary },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.itemText,
+                    { color: theme.colors.text },
+                    item.done && { color: theme.colors.muted, textDecorationLine: 'line-through' },
+                  ]}
+                >
+                  {item.text}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDelete(item.id)}
+              >
+                <Text style={[styles.deleteButtonText, { color: theme.colors.danger }]}>
+                  {t('common.delete')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {itemActionErrors[item.id] ? (
+              <Text style={[styles.errorText, { color: theme.colors.danger }]}>
+                {itemActionErrors[item.id]}
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDelete(item.id)}
-            >
-              <Text style={[styles.deleteButtonText, { color: theme.colors.danger }]}>
-                {t('common.delete')}
-              </Text>
-            </TouchableOpacity>
+            ) : null}
           </View>
         )}
       />

@@ -1,5 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { loginWithEmail, resetPassword } from '../../lib/auth';
 import { getAuthErrorKey } from '../../lib/authErrors';
 import { t } from '../../lib/i18n';
@@ -10,36 +11,58 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [error, setError] = useState('');
-  const [info, setInfo] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorTarget, setErrorTarget] = useState('');
+  const [infoMessage, setInfoMessage] = useState('');
+  const [infoTarget, setInfoTarget] = useState('');
   const passwordRef = useRef(null);
   const { theme } = useTheme();
   const { locale } = useLocale();
 
+  useFocusEffect(
+    useCallback(() => {
+      setErrorMessage('');
+      setErrorTarget('');
+      setInfoMessage('');
+      setInfoTarget('');
+    }, [])
+  );
+
   const handleLogin = async () => {
-    setError('');
-    setInfo('');
+    setErrorMessage('');
+    setErrorTarget('');
+    setInfoMessage('');
+    setInfoTarget('');
     try {
       await loginWithEmail(email.trim(), password);
     } catch (loginError) {
-      setError(t(getAuthErrorKey(loginError?.code)));
+      const code = loginError?.code;
+      const target =
+        code === 'auth/invalid-email' || code === 'auth/user-not-found' ? 'email' : 'password';
+      setErrorMessage(t(getAuthErrorKey(code)));
+      setErrorTarget(target);
     }
   };
 
   const handleResetPassword = async () => {
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
-      setError(t('auth.reset.emptyEmail'));
-      setInfo('');
+      setErrorMessage(t('auth.reset.emptyEmail'));
+      setErrorTarget('email');
+      setInfoMessage('');
+      setInfoTarget('');
       return;
     }
 
-    setError('');
+    setErrorMessage('');
+    setErrorTarget('');
     try {
       await resetPassword(trimmedEmail);
-      setInfo(t('auth.reset.sent'));
+      setInfoMessage(t('auth.reset.sent'));
+      setInfoTarget('email');
     } catch (resetError) {
-      setError(t(getAuthErrorKey(resetError?.code)));
+      setErrorMessage(t(getAuthErrorKey(resetError?.code)));
+      setErrorTarget('email');
     }
   };
 
@@ -63,6 +86,16 @@ export default function LoginScreen({ navigation }) {
         textContentType="emailAddress"
         placeholderTextColor={theme.colors.muted}
       />
+      {errorTarget === 'email' ? (
+        <Text style={[styles.errorText, { color: theme.colors.danger }]}>
+          {errorMessage}
+        </Text>
+      ) : null}
+      {infoTarget === 'email' ? (
+        <Text style={[styles.infoText, { color: theme.colors.primary }]}>
+          {infoMessage}
+        </Text>
+      ) : null}
       <Text style={[styles.label, { color: theme.colors.text }]}>
         {t('auth.password.label')}
       </Text>
@@ -88,11 +121,10 @@ export default function LoginScreen({ navigation }) {
           </Text>
         </TouchableOpacity>
       </View>
-      {error ? (
-        <Text style={[styles.errorText, { color: theme.colors.danger }]}>{error}</Text>
-      ) : null}
-      {info ? (
-        <Text style={[styles.infoText, { color: theme.colors.primary }]}>{info}</Text>
+      {errorTarget === 'password' ? (
+        <Text style={[styles.errorText, { color: theme.colors.danger }]}>
+          {errorMessage}
+        </Text>
       ) : null}
       <TouchableOpacity
         style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
