@@ -5,12 +5,22 @@ import ListsScreen from '../screens/Lists/ListsScreen.js';
 import InvitesScreen from '../screens/Invites/InvitesScreen.js';
 import SettingsScreen from '../screens/Settings/SettingsScreen.js';
 import { t } from '../lib/i18n';
+import { useLocale } from '../lib/i18n/LocaleProvider';
 import { useTheme } from '../lib/theme/ThemeProvider';
 
 const Tab = createBottomTabNavigator();
 
 export default function AppTabs() {
+  const { locale } = useLocale();
   const { theme } = useTheme();
+  const labels = React.useMemo(
+    () => ({
+      Lists: t('tabs.lists'),
+      Invites: t('tabs.invites'),
+      Settings: t('tabs.settings'),
+    }),
+    [locale],
+  );
 
   return (
     <Tab.Navigator
@@ -39,17 +49,17 @@ export default function AppTabs() {
       <Tab.Screen
         name="Lists"
         component={ListsScreen}
-        options={{ title: t('tabs.lists'), tabBarLabel: t('tabs.lists') }}
+        options={{ title: labels.Lists, tabBarLabel: labels.Lists }}
       />
       <Tab.Screen
         name="Invites"
         component={InvitesScreen}
-        options={{ title: t('tabs.invites'), tabBarLabel: t('tabs.invites') }}
+        options={{ title: labels.Invites, tabBarLabel: labels.Invites }}
       />
       <Tab.Screen
         name="Settings"
         component={SettingsScreen}
-        options={{ title: t('tabs.settings'), tabBarLabel: t('tabs.settings') }}
+        options={{ title: labels.Settings, tabBarLabel: labels.Settings }}
       />
     </Tab.Navigator>
   );
