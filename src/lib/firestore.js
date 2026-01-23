@@ -25,7 +25,20 @@ export const listItemsCollection = (listId) =>
 
 export const createUserProfile = async ({ uid, email }) => {
   const userRef = doc(db, 'users', uid);
-  return setDoc(userRef, { email, createdAt: serverTimestamp() }, { merge: true });
+  return setDoc(
+    userRef,
+    { email, emailLower: email.toLowerCase(), createdAt: serverTimestamp() },
+    { merge: true }
+  );
+};
+
+export const ensureUserEmailLower = async ({ uid, email }) => {
+  if (!uid || !email) {
+    return null;
+  }
+
+  const userRef = doc(db, 'users', uid);
+  return setDoc(userRef, { email, emailLower: email.toLowerCase() }, { merge: true });
 };
 
 export const subscribeToUserLists = (uid, onChange) => {

@@ -342,6 +342,27 @@ SL-41 добавить scheme for linking [DONE]
 SL-42 на странице списка языков есть ссылка Tabs без перевода, хидер и футер не переводится после смены языка. [DONE]
 SL-43 пофиксить разметку выбора страниц [DONE]
 SL-44 сообщение об ошибке должно находиться под элементом, который вызвал ошибку. Например инпуты
+SL-45 добавить оповещение на андроид и ios, когда приходит invite.[DONE]
+SL-46 dev build setup для Android/iOS (полная инструкция по установке и запуску).
+
+## Push Notifications (SL-45)
+Client:
+- Uses `expo-notifications` to request permission and store Expo push tokens on `users/{uid}`.
+- Tokens are stored in `expoPushTokens` and updated with `pushTokenUpdatedAt`.
+
+Backend:
+- Firebase Cloud Function `sendInviteNotification` sends a push when a new invite is created.
+- Requires `functions/` deployment and a configured Firebase project.
+
+Setup:
+1) `npm install expo-notifications`
+2) `firebase init functions` (select this project, JavaScript, Node 18)
+3) `cd functions && npm install`
+4) `firebase deploy --only functions`
+
+Notes:
+- iOS push requires a physical device.
+- Expo Go can receive push notifications, production builds need proper app ids.
 
 
 ## Release Notes
