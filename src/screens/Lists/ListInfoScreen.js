@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { auth } from '../../lib/firebase';
-import { createInvite, deleteList, renameList, subscribeToList } from '../../lib/firestore';
+import { createInvite, deleteList, leaveList, renameList, subscribeToList } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
 
@@ -19,6 +19,8 @@ export default function ListInfoScreen({ route, navigation }) {
   const [renameValue, setRenameValue] = useState('');
   const [renameError, setRenameError] = useState('');
   const [deleteError, setDeleteError] = useState('');
+  const [leaveError, setLeaveError] = useState('');
+  const unsubscribeRef = useRef(null);
   const { theme } = useTheme();
   const isOwner = auth.currentUser?.uid === listOwnerUid;
 
@@ -27,6 +29,7 @@ export default function ListInfoScreen({ route, navigation }) {
       setInviteError('');
       setRenameError('');
       setDeleteError('');
+      setLeaveError('');
     }, [])
   );
 
@@ -35,7 +38,7 @@ export default function ListInfoScreen({ route, navigation }) {
       return undefined;
     }
 
-    return subscribeToList(listId, (listDoc) => {
+    const unsubscribe = subscribeToList(listId, (listDoc) => {
       if (!listDoc) {
         setMembers([]);
         setListExists(false);
@@ -54,6 +57,12 @@ export default function ListInfoScreen({ route, navigation }) {
       }));
       setMembers(nextMembers);
     });
+
+    unsubscribeRef.current = unsubscribe;
+    return () => {
+      unsubscribeRef.current = null;
+      unsubscribe();
+    };
   }, [listId]);
 
   useEffect(() => {
@@ -144,7 +153,7 @@ export default function ListInfoScreen({ route, navigation }) {
 
     Alert.alert(
       t('lists.delete.title'),
-      t('lists.delete.message'),
+      t('lists.delete.message', { name: listName || t('listDetails.title') }),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
@@ -152,6 +161,41 @@ export default function ListInfoScreen({ route, navigation }) {
           style: 'destructive',
           onPress: runDelete,
         },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const handleLeave = () => {
+    if (isOwner) {
+      return;
+    }
+
+    const runLeave = async () => {
+      setLeaveError('');
+      try {
+        await leaveList({ listId, userUid: auth.currentUser?.uid });
+        if (unsubscribeRef.current) {
+          unsubscribeRef.current();
+          unsubscribeRef.current = null;
+        }
+        Alert.alert(
+          t('listDetails.leave.toastTitle'),
+          t('listDetails.leave.toast', { name: listName || t('listDetails.title') }),
+          [{ text: t('common.ok') }]
+        );
+        navigation.navigate('Tabs');
+      } catch (leaveErr) {
+        setLeaveError(t('listDetails.leave.error'));
+      }
+    };
+
+    Alert.alert(
+      t('listDetails.leave.title'),
+      t('listDetails.leave.message'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('listDetails.leave.action'), onPress: runLeave },
       ],
       { cancelable: true }
     );
@@ -268,7 +312,7 @@ export default function ListInfoScreen({ route, navigation }) {
               onPress={handleDelete}
             >
               <Text style={[styles.dangerButtonText, { color: theme.colors.danger }]}>
-                {t('lists.delete.action')}
+                {t('lists.delete.action', { name: listName || t('listDetails.title') })}
               </Text>
             </TouchableOpacity>
             {deleteError ? (
@@ -278,7 +322,23 @@ export default function ListInfoScreen({ route, navigation }) {
             ) : null}
           </View>
         </>
-      ) : null}
+      ) : (
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={[styles.dangerButton, { borderColor: theme.colors.danger }]}
+            onPress={handleLeave}
+          >
+            <Text style={[styles.dangerButtonText, { color: theme.colors.danger }]}>
+              {t('listDetails.leave.action')}
+            </Text>
+          </TouchableOpacity>
+          {leaveError ? (
+            <Text style={[styles.errorText, { color: theme.colors.danger }]}>
+              {leaveError}
+            </Text>
+          ) : null}
+        </View>
+      )}
     </View>
   );
 }

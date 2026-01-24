@@ -79,8 +79,8 @@ export default {
     delete: {
       error: 'Could not delete the list.',
       title: 'Delete list?',
-      message: 'This will remove the list for everyone.',
-      action: 'Delete',
+      message: 'This will remove the list "%{name}" for everyone.',
+      action: 'Delete list',
     },
     membersCount: 'Members',
   },
@@ -89,7 +89,7 @@ export default {
     leave: {
       title: 'Leave list?',
       message: 'You will lose access to this list.',
-      action: 'Leave',
+      action: 'Leave list',
       error: 'Could not leave the list.',
       toastTitle: 'Left list',
       toast: 'You left the list "%{name}".',

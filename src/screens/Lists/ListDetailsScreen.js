@@ -1,25 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Alert,
-  FlatList,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  ToastAndroid,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { auth } from '../../lib/firebase';
-import {
-  addListItem,
-  deleteListItem,
-  leaveList,
-  subscribeToList,
-  subscribeToListItems,
-  toggleListItem,
-} from '../../lib/firestore';
+import { addListItem, deleteListItem, subscribeToList, subscribeToListItems, toggleListItem } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
 
@@ -33,7 +16,6 @@ export default function ListDetailsScreen({ route, navigation }) {
   const [currentListName, setCurrentListName] = useState(listName || '');
   const [listExists, setListExists] = useState(true);
   const [hasShownDeletedNotice, setHasShownDeletedNotice] = useState(false);
-  const [hasLeftList, setHasLeftList] = useState(false);
   const inputRef = useRef(null);
   const isOwner = auth.currentUser?.uid === listOwnerUid;
   const { theme } = useTheme();
@@ -46,15 +28,15 @@ export default function ListDetailsScreen({ route, navigation }) {
   );
 
   useEffect(() => {
-    if (!listId || !listExists || hasLeftList) {
+    if (!listId || !listExists) {
       return undefined;
     }
 
     return subscribeToListItems(listId, setItems);
-  }, [listId, listExists, hasLeftList]);
+  }, [listId, listExists]);
 
   useEffect(() => {
-    if (!listId || hasLeftList) {
+    if (!listId) {
       return undefined;
     }
 
@@ -68,7 +50,7 @@ export default function ListDetailsScreen({ route, navigation }) {
       setListOwnerUid(listDoc.ownerUid);
       setCurrentListName(listDoc.name || '');
     });
-  }, [listId, hasLeftList]);
+  }, [listId]);
 
   useEffect(() => {
     if (listExists) {
@@ -164,67 +146,12 @@ export default function ListDetailsScreen({ route, navigation }) {
     }
   };
 
-  const showLeaveNotice = () => {
-    const name = currentListName || listName || t('listDetails.title');
-    if (!name || name === '{name}') {
-      return;
-    }
-    const message = t('listDetails.leave.toast', { name });
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(message, ToastAndroid.LONG);
-      return;
-    }
-    Alert.alert(t('listDetails.leave.toastTitle'), message, [{ text: t('common.ok') }]);
-  };
-
-  const handleLeave = async () => {
-    if (isOwner) {
-      return;
-    }
-
-    Alert.alert(
-      t('listDetails.leave.title'),
-      t('listDetails.leave.message'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('listDetails.leave.action'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await leaveList({
-                listId,
-                userUid: auth.currentUser?.uid || 'unknown',
-              });
-              setHasLeftList(true);
-              showLeaveNotice();
-              navigation.navigate('Tabs', { screen: 'Lists' });
-            } catch (leaveError) {
-              setItemError(t('listDetails.leave.error'));
-            }
-          },
-        },
-      ],
-      { cancelable: true }
-    );
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.headerRow}>
         <Text style={[styles.title, { color: theme.colors.text }]}>
           {currentListName || t('listDetails.title')}
         </Text>
-        {!isOwner ? (
-          <TouchableOpacity
-            style={[styles.leaveButtonInline, { borderColor: theme.colors.danger }]}
-            onPress={handleLeave}
-          >
-            <Text style={[styles.leaveButtonText, { color: theme.colors.danger }]}>
-              {t('listDetails.leave.action')}
-            </Text>
-          </TouchableOpacity>
-        ) : null}
       </View>
       <View style={styles.formRow}>
         <TextInput
@@ -318,16 +245,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: '600',
-  },
-  leaveButtonInline: {
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  leaveButtonText: {
-    fontSize: 14,
     fontWeight: '600',
   },
   formRow: {
