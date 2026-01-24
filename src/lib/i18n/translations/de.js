@@ -53,6 +53,12 @@ export default {
   },
   lists: {
     deleted: {
+    manage: {
+    details: {
+      action: 'Einstellungen',
+    },
+      action: 'Verwalten',
+    },
       title: 'Liste gel?scht',
       message: 'Diese Liste wurde gel?scht.',
     },
@@ -78,11 +84,29 @@ export default {
     membersCount: 'Mitglieder',
   },
   listDetails: {
-    title: 'Liste',
+    title: 'Einkaufsliste',
+    infoButton: 'Info',
+    leave: {
+      title: 'Liste verlassen?',
+      message: 'Sie verlieren den Zugriff auf diese Liste.',
+      action: 'Verlassen',
+      error: 'Liste konnte nicht verlassen werden.',
+      toastTitle: 'Liste verlassen',
+      toast: 'Sie haben die Liste "%{name}" verlassen.',
+    },
     membersTitle: 'Teilnehmer',
     membersEmpty: 'Noch keine Teilnehmer.',
     ownerBadge: 'Inhaber',
     youSuffix: '(Sie)',
+  },
+  listInfo: {
+    title: 'Listeninfo',
+    membersTitle: 'Teilnehmer',
+    membersEmpty: 'Noch keine Teilnehmer.',
+    ownerBadge: 'Inhaber',
+    youSuffix: '(Sie)',
+    inviteTitle: 'Einladen',
+    renameTitle: 'Liste umbenennen',
   },
   items: {
     add: {

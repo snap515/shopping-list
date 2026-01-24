@@ -1,76 +1,74 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  FlatList,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { auth } from '../../lib/firebase';
 import {
   addListItem,
-  createInvite,
   deleteListItem,
+  leaveList,
   subscribeToList,
   subscribeToListItems,
   toggleListItem,
 } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
-import { useLocale } from '../../lib/i18n/LocaleProvider';
 
 export default function ListDetailsScreen({ route, navigation }) {
   const { listId, ownerUid, listName } = route.params || {};
   const [items, setItems] = useState([]);
   const [itemText, setItemText] = useState('');
-  const [inviteEmail, setInviteEmail] = useState('');
   const [itemError, setItemError] = useState('');
-  const [inviteError, setInviteError] = useState('');
   const [itemActionErrors, setItemActionErrors] = useState({});
-  const [isInviting, setIsInviting] = useState(false);
-  const [members, setMembers] = useState([]);
   const [listOwnerUid, setListOwnerUid] = useState(ownerUid);
+  const [currentListName, setCurrentListName] = useState(listName || '');
   const [listExists, setListExists] = useState(true);
   const [hasShownDeletedNotice, setHasShownDeletedNotice] = useState(false);
+  const [hasLeftList, setHasLeftList] = useState(false);
   const inputRef = useRef(null);
   const isOwner = auth.currentUser?.uid === listOwnerUid;
   const { theme } = useTheme();
-  const { locale } = useLocale();
 
   useFocusEffect(
     useCallback(() => {
       setItemError('');
-      setInviteError('');
       setItemActionErrors({});
     }, [])
   );
 
   useEffect(() => {
-    if (!listId || !listExists) {
+    if (!listId || !listExists || hasLeftList) {
       return undefined;
     }
 
     return subscribeToListItems(listId, setItems);
-  }, [listId, listExists]);
+  }, [listId, listExists, hasLeftList]);
 
   useEffect(() => {
-    if (!listId) {
+    if (!listId || hasLeftList) {
       return undefined;
     }
 
     return subscribeToList(listId, (listDoc) => {
       if (!listDoc) {
-        setMembers([]);
         setListExists(false);
         return;
       }
 
       setListExists(true);
       setListOwnerUid(listDoc.ownerUid);
-      const memberUids = listDoc.memberUids || [];
-      const memberEmails = listDoc.memberEmails || {};
-      const nextMembers = memberUids.map((uid) => ({
-        id: uid,
-        email: memberEmails[uid],
-      }));
-      setMembers(nextMembers);
+      setCurrentListName(listDoc.name || '');
     });
-  }, [listId]);
+  }, [listId, hasLeftList]);
 
   useEffect(() => {
     if (listExists) {
@@ -166,113 +164,68 @@ export default function ListDetailsScreen({ route, navigation }) {
     }
   };
 
-  const handleInvite = async () => {
-    if (isInviting) {
+  const showLeaveNotice = () => {
+    const name = currentListName || listName || t('listDetails.title');
+    if (!name || name === '{name}') {
+      return;
+    }
+    const message = t('listDetails.leave.toast', { name });
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(message, ToastAndroid.LONG);
+      return;
+    }
+    Alert.alert(t('listDetails.leave.toastTitle'), message, [{ text: t('common.ok') }]);
+  };
+
+  const handleLeave = async () => {
+    if (isOwner) {
       return;
     }
 
-    const trimmedEmail = inviteEmail.trim();
-    if (!trimmedEmail) {
-      setInviteError(t('invites.create.empty'));
-      return;
-    }
-
-    setInviteError('');
-    setIsInviting(true);
-    try {
-      await createInvite({
-        listId,
-        listName: listName || '',
-        fromUid: auth.currentUser?.uid || 'unknown',
-        fromEmail: auth.currentUser?.email || 'unknown',
-        toEmail: trimmedEmail,
-      });
-      setInviteEmail('');
-    } catch (inviteError) {
-      const code = inviteError?.code;
-      if (code === 'invite/already-member') {
-        setInviteError(t('invites.create.alreadyMember'));
-      } else if (code === 'invite/already-pending') {
-        setInviteError(t('invites.create.alreadyPending'));
-      } else if (code === 'permission-denied') {
-        setInviteError(t('invites.create.permissionDenied'));
-      } else {
-        setInviteError(t('invites.create.error'));
-      }
-    } finally {
-      setIsInviting(false);
-    }
+    Alert.alert(
+      t('listDetails.leave.title'),
+      t('listDetails.leave.message'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('listDetails.leave.action'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await leaveList({
+                listId,
+                userUid: auth.currentUser?.uid || 'unknown',
+              });
+              setHasLeftList(true);
+              showLeaveNotice();
+              navigation.navigate('Tabs', { screen: 'Lists' });
+            } catch (leaveError) {
+              setItemError(t('listDetails.leave.error'));
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>
-        {t('listDetails.title')}
-      </Text>
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          {t('listDetails.membersTitle')}
+      <View style={styles.headerRow}>
+        <Text style={[styles.title, { color: theme.colors.text }]}>
+          {currentListName || t('listDetails.title')}
         </Text>
-        {members.length === 0 ? (
-          <Text style={[styles.mutedText, { color: theme.colors.muted }]}>
-            {t('listDetails.membersEmpty')}
-          </Text>
-        ) : (
-          members.map((member) => (
-            <View
-              key={member.id}
-              style={[
-                styles.memberRow,
-                { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
-              ]}
-            >
-              <Text style={[styles.memberText, { color: theme.colors.text }]}>
-                {member.email || member.id}
-                {member.id === auth.currentUser?.uid
-                  ? ` ${t('listDetails.youSuffix')}`
-                  : ''}
-              </Text>
-              {member.id === listOwnerUid ? (
-                <Text style={[styles.memberBadge, { color: theme.colors.primary }]}>
-                  {t('listDetails.ownerBadge')}
-                </Text>
-              ) : null}
-            </View>
-          ))
-        )}
-      </View>
-      {isOwner ? (
-        <>
-          <View style={styles.inviteRow}>
-            <TextInput
-              placeholder={t('invites.create.placeholder')}
-              style={[
-                styles.input,
-                { borderColor: theme.colors.border, color: theme.colors.text },
-              ]}
-              value={inviteEmail}
-              onChangeText={setInviteEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              placeholderTextColor={theme.colors.muted}
-            />
+        {!isOwner ? (
           <TouchableOpacity
-            style={[styles.secondaryButton, { borderColor: theme.colors.primary }]}
-            onPress={handleInvite}
-            disabled={isInviting}
+            style={[styles.leaveButtonInline, { borderColor: theme.colors.danger }]}
+            onPress={handleLeave}
           >
-            <Text style={[styles.secondaryButtonText, { color: theme.colors.primary }]}>
-              {t('invites.create.submit')}
+            <Text style={[styles.leaveButtonText, { color: theme.colors.danger }]}>
+              {t('listDetails.leave.action')}
             </Text>
           </TouchableOpacity>
-          </View>
-          {inviteError ? (
-            <Text style={[styles.errorText, { color: theme.colors.danger }]}>
-              {inviteError}
-            </Text>
-          ) : null}
-        </>
-      ) : null}
+        ) : null}
+      </View>
       <View style={styles.formRow}>
         <TextInput
           placeholder={t('items.add.placeholder')}
@@ -356,52 +309,32 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 12,
+  },
   title: {
     fontSize: 20,
     fontWeight: '600',
-    marginBottom: 16,
+  },
+  leaveButtonInline: {
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  leaveButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   formRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginBottom: 12,
-  },
-  inviteRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  section: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  mutedText: {
-    color: '#666',
-  },
-  memberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderColor: '#e1e1e1',
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    marginBottom: 8,
-  },
-  memberText: {
-    fontSize: 14,
-  },
-  memberBadge: {
-    color: '#1f5eff',
-    fontSize: 12,
-    fontWeight: '600',
   },
   input: {
     flex: 1,
@@ -419,17 +352,6 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  secondaryButton: {
-    borderColor: '#1f5eff',
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  secondaryButtonText: {
     fontSize: 14,
     fontWeight: '600',
   },

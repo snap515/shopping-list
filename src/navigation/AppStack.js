@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AppTabs from './AppTabs.js';
 import ListDetailsScreen from '../screens/Lists/ListDetailsScreen.js';
+import ListInfoScreen from '../screens/Lists/ListInfoScreen.js';
 import LanguageScreen from '../screens/Settings/LanguageScreen.js';
 import { t } from '../lib/i18n';
 import { useLocale } from '../lib/i18n/LocaleProvider';
@@ -18,6 +19,11 @@ export default function AppStack() {
         name="ListDetails"
         component={ListDetailsScreen}
         options={{ title: t('listDetails.title'), headerBackTitle: t('tabs.lists') }}
+      />
+      <Stack.Screen
+        name="ListInfo"
+        component={ListInfoScreen}
+        options={{ title: t('listInfo.title'), headerBackTitle: t('tabs.lists') }}
       />
       <Stack.Screen
         name="Language"

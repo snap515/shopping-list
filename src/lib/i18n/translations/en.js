@@ -57,6 +57,12 @@ export default {
       title: 'List deleted',
       message: 'This list was deleted.',
     },
+    manage: {
+      action: 'Manage',
+    },
+    details: {
+      action: 'Settings',
+    },
     create: {
       emptyName: 'Enter a list name.',
       error: 'Could not create the list.',
@@ -79,11 +85,24 @@ export default {
     membersCount: 'Members',
   },
   listDetails: {
-    title: 'List details',
+    title: 'Shopping list',
+    leave: {
+      title: 'Leave list?',
+      message: 'You will lose access to this list.',
+      action: 'Leave',
+      error: 'Could not leave the list.',
+      toastTitle: 'Left list',
+      toast: 'You left the list "%{name}".',
+    },
+  },
+  listInfo: {
+    title: 'List settings',
     membersTitle: 'Shared with',
     membersEmpty: 'No members yet.',
     ownerBadge: 'Owner',
     youSuffix: '(you)',
+    inviteTitle: 'Invite',
+    renameTitle: 'Rename list',
   },
   items: {
     add: {
