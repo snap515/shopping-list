@@ -1,8 +1,10 @@
 import {
   addDoc,
   arrayUnion,
+  arrayRemove,
   collection,
   deleteDoc,
+  deleteField,
   doc,
   documentId,
   getDoc,
@@ -67,6 +69,14 @@ export const renameList = (listId, name) =>
   updateDoc(doc(db, 'lists', listId), { name });
 
 export const deleteList = (listId) => deleteDoc(doc(db, 'lists', listId));
+
+export const leaveList = async ({ listId, userUid }) => {
+  const listRef = doc(db, 'lists', listId);
+  return updateDoc(listRef, {
+    memberUids: arrayRemove(userUid),
+    [`memberEmails.${userUid}`]: deleteField(),
+  });
+};
 
 export const subscribeToList = (listId, onChange) =>
   onSnapshot(doc(db, 'lists', listId), (snapshot) => {

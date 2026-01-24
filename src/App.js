@@ -36,6 +36,7 @@ const linking = {
         },
       },
       ListDetails: 'lists/:listId',
+      ListInfo: 'list/:listId/settings',
       Language: 'settings/language',
     },
   },

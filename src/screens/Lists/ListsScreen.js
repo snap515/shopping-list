@@ -1,17 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  Alert,
-  FlatList,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { auth } from '../../lib/firebase';
-import { createList, deleteList, renameList, subscribeToUserLists } from '../../lib/firestore';
+import { createList, subscribeToUserLists } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
 import { useLocale } from '../../lib/i18n/LocaleProvider';
@@ -20,18 +11,12 @@ export default function ListsScreen({ navigation }) {
   const [lists, setLists] = useState([]);
   const [listName, setListName] = useState('');
   const [createError, setCreateError] = useState('');
-  const [renameErrors, setRenameErrors] = useState({});
-  const [deleteErrors, setDeleteErrors] = useState({});
-  const [editingListId, setEditingListId] = useState(null);
-  const [editingName, setEditingName] = useState('');
   const { theme } = useTheme();
   const { locale } = useLocale();
 
   useFocusEffect(
     useCallback(() => {
       setCreateError('');
-      setRenameErrors({});
-      setDeleteErrors({});
     }, [])
   );
 
@@ -68,92 +53,6 @@ export default function ListsScreen({ navigation }) {
     }
   };
 
-  const startEditing = (list) => {
-    setEditingListId(list.id);
-    setEditingName(list.name);
-    setRenameErrors((prev) => {
-      if (!prev[list.id]) {
-        return prev;
-      }
-      const next = { ...prev };
-      delete next[list.id];
-      return next;
-    });
-  };
-
-  const cancelEditing = () => {
-    setRenameErrors((prev) => {
-      if (!editingListId || !prev[editingListId]) {
-        return prev;
-      }
-      const next = { ...prev };
-      delete next[editingListId];
-      return next;
-    });
-    setEditingListId(null);
-    setEditingName('');
-  };
-
-  const handleRename = async (listId) => {
-    const trimmedName = editingName.trim();
-    if (!trimmedName) {
-      setRenameErrors((prev) => ({ ...prev, [listId]: t('lists.rename.emptyName') }));
-      return;
-    }
-
-    setRenameErrors((prev) => {
-      if (!prev[listId]) {
-        return prev;
-      }
-      const next = { ...prev };
-      delete next[listId];
-      return next;
-    });
-    try {
-      await renameList(listId, trimmedName);
-      cancelEditing();
-    } catch (renameError) {
-      setRenameErrors((prev) => ({ ...prev, [listId]: t('lists.rename.error') }));
-    }
-  };
-
-  const runDelete = async (listId) => {
-    setDeleteErrors((prev) => {
-      if (!prev[listId]) {
-        return prev;
-      }
-      const next = { ...prev };
-      delete next[listId];
-      return next;
-    });
-    try {
-      await deleteList(listId);
-    } catch (deleteError) {
-      setDeleteErrors((prev) => ({ ...prev, [listId]: t('lists.delete.error') }));
-    }
-  };
-
-  const handleDelete = (listId) => {
-    if (Platform.OS === 'web') {
-      runDelete(listId);
-      return;
-    }
-
-    Alert.alert(
-      t('lists.delete.title'),
-      t('lists.delete.message'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: () => runDelete(listId),
-        },
-      ],
-      { cancelable: true }
-    );
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.headerRow}>
@@ -188,18 +87,16 @@ export default function ListsScreen({ navigation }) {
         data={lists}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => {
-          const isEditing = editingListId === item.id;
-          const isOwner = auth.currentUser?.uid === item.ownerUid;
-
-          return (
-            <View
-              style={[
-                styles.listCard,
-                { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
-              ]}
-            >
+        renderItem={({ item }) => (
+          <View
+            style={[
+              styles.listCard,
+              { borderColor: theme.colors.border, backgroundColor: theme.colors.surface },
+            ]}
+          >
+            <View style={styles.listHeader}>
               <TouchableOpacity
+                style={styles.listTitleButton}
                 onPress={() =>
                   navigation.navigate('ListDetails', {
                     listId: item.id,
@@ -207,85 +104,25 @@ export default function ListsScreen({ navigation }) {
                     listName: item.name,
                   })
                 }
-                activeOpacity={isEditing ? 1 : 0.7}
-                disabled={isEditing}
               >
-                {isEditing ? (
-                  <TextInput
-                    style={[
-                      styles.editInput,
-                      { borderColor: theme.colors.border, color: theme.colors.text },
-                    ]}
-                    value={editingName}
-                    onChangeText={setEditingName}
-                    placeholder={t('lists.rename.placeholder')}
-                    placeholderTextColor={theme.colors.muted}
-                  />
-                ) : (
-                  <Text style={[styles.listName, { color: theme.colors.text }]}>
-                    {item.name}
-                  </Text>
-                )}
-                {isEditing && renameErrors[item.id] ? (
-                  <Text style={[styles.errorText, { color: theme.colors.danger }]}>
-                    {renameErrors[item.id]}
-                  </Text>
-                ) : null}
+                <Text style={[styles.listName, { color: theme.colors.text }]}>
+                  {item.name}
+                </Text>
                 <Text style={[styles.listMeta, { color: theme.colors.muted }]}>
                   {t('lists.membersCount')} {item.memberUids?.length || 0}
                 </Text>
               </TouchableOpacity>
-              {isOwner ? (
-                <View style={styles.listActions}>
-                  {isEditing ? (
-                    <>
-                      <TouchableOpacity
-                        style={[styles.inlineButton, { borderColor: theme.colors.primary }]}
-                        onPress={() => handleRename(item.id)}
-                      >
-                        <Text style={[styles.inlineButtonText, { color: theme.colors.primary }]}>
-                          {t('common.save')}
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.inlineButton, { borderColor: theme.colors.primary }]}
-                        onPress={cancelEditing}
-                      >
-                        <Text style={[styles.inlineButtonText, { color: theme.colors.primary }]}>
-                          {t('common.cancel')}
-                        </Text>
-                      </TouchableOpacity>
-                    </>
-                  ) : (
-                    <>
-                      <TouchableOpacity
-                        style={[styles.inlineButton, { borderColor: theme.colors.primary }]}
-                        onPress={() => startEditing(item)}
-                      >
-                        <Text style={[styles.inlineButtonText, { color: theme.colors.primary }]}>
-                          {t('lists.rename.action')}
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.inlineButton, { borderColor: theme.colors.primary }]}
-                        onPress={() => handleDelete(item.id)}
-                      >
-                        <Text style={[styles.inlineButtonText, { color: theme.colors.primary }]}>
-                          {t('lists.delete.action')}
-                        </Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
-                  {deleteErrors[item.id] ? (
-                    <Text style={[styles.errorText, { color: theme.colors.danger }]}>
-                      {deleteErrors[item.id]}
-                    </Text>
-                  ) : null}
-                </View>
-              ) : null}
+              <TouchableOpacity
+                style={[styles.manageButton, { borderColor: theme.colors.primary }]}
+                onPress={() => navigation.navigate('ListInfo', { listId: item.id })}
+              >
+                <Text style={[styles.manageButtonText, { color: theme.colors.primary }]}>
+                  {t('lists.details.action')}
+                </Text>
+              </TouchableOpacity>
             </View>
-          );
-        }}
+          </View>
+        )}
       />
     </View>
   );
@@ -345,34 +182,31 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 10,
   },
+  listHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  listTitleButton: {
+    flex: 1,
+  },
   listName: {
     fontSize: 16,
     fontWeight: '600',
-  },
-  editInput: {
-    borderColor: '#d0d0d0',
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
   },
   listMeta: {
     color: '#666',
     marginTop: 4,
   },
-  listActions: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 10,
-  },
-  inlineButton: {
+  manageButton: {
     borderColor: '#1f5eff',
-    borderRadius: 6,
+    borderRadius: 8,
     borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  inlineButtonText: {
+  manageButtonText: {
     color: '#1f5eff',
     fontSize: 12,
     fontWeight: '600',
