@@ -72,6 +72,9 @@ function AppContainer() {
 
   return (
     <NavigationContainer
+      documentTitle={{
+        formatter: (options, route) => options?.title || 'shopping-list',
+      }}
       linking={linking}
       theme={{
         dark: theme.id === 'dark',
