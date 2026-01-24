@@ -89,7 +89,7 @@ export default {
     leave: {
       title: 'Liste verlassen?',
       message: 'Sie verlieren den Zugriff auf diese Liste.',
-      action: 'Verlassen',
+      action: 'Liste verlassen',
       error: 'Liste konnte nicht verlassen werden.',
       toastTitle: 'Liste verlassen',
       toast: 'Sie haben die Liste "%{name}" verlassen.',
