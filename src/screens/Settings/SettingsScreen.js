@@ -18,6 +18,7 @@ export default function SettingsScreen({ navigation }) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const userEmail = auth.currentUser?.email || t('auth.anonymous');
   const { locale } = useLocale();
   const { theme, themeId, setThemeId } = useTheme();
@@ -30,6 +31,10 @@ export default function SettingsScreen({ navigation }) {
   );
 
   const handleChangePassword = async () => {
+    if (isChangingPassword) {
+      return;
+    }
+
     const trimmedPassword = newPassword.trim();
     if (!trimmedPassword) {
       setError(t('auth.change.emptyPassword'));
@@ -38,12 +43,15 @@ export default function SettingsScreen({ navigation }) {
     }
 
     setError('');
+    setIsChangingPassword(true);
     try {
       await changePassword(trimmedPassword);
       setNewPassword('');
       setInfo(t('auth.change.success'));
     } catch (changeError) {
       setError(t('auth.change.error'));
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -120,8 +128,13 @@ export default function SettingsScreen({ navigation }) {
           <Text style={[styles.infoText, { color: theme.colors.primary }]}>{info}</Text>
         ) : null}
         <TouchableOpacity
-          style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
+          style={[
+            styles.primaryButton,
+            { backgroundColor: theme.colors.primary },
+            isChangingPassword && styles.disabledButton,
+          ]}
           onPress={handleChangePassword}
+          disabled={isChangingPassword}
         >
           <Text style={styles.primaryButtonText}>{t('auth.change.submit')}</Text>
         </TouchableOpacity>
@@ -223,5 +236,8 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 });

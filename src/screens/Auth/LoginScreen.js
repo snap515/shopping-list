@@ -15,6 +15,8 @@ export default function LoginScreen({ navigation }) {
   const [errorTarget, setErrorTarget] = useState('');
   const [infoMessage, setInfoMessage] = useState('');
   const [infoTarget, setInfoTarget] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const passwordRef = useRef(null);
   const { theme } = useTheme();
   const { locale } = useLocale();
@@ -29,10 +31,15 @@ export default function LoginScreen({ navigation }) {
   );
 
   const handleLogin = async () => {
+    if (isLoggingIn) {
+      return;
+    }
+
     setErrorMessage('');
     setErrorTarget('');
     setInfoMessage('');
     setInfoTarget('');
+    setIsLoggingIn(true);
     try {
       await loginWithEmail(email.trim(), password);
     } catch (loginError) {
@@ -41,10 +48,16 @@ export default function LoginScreen({ navigation }) {
         code === 'auth/invalid-email' || code === 'auth/user-not-found' ? 'email' : 'password';
       setErrorMessage(t(getAuthErrorKey(code)));
       setErrorTarget(target);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
   const handleResetPassword = async () => {
+    if (isResetting) {
+      return;
+    }
+
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
       setErrorMessage(t('auth.reset.emptyEmail'));
@@ -56,6 +69,7 @@ export default function LoginScreen({ navigation }) {
 
     setErrorMessage('');
     setErrorTarget('');
+    setIsResetting(true);
     try {
       await resetPassword(trimmedEmail);
       setInfoMessage(t('auth.reset.sent'));
@@ -63,6 +77,8 @@ export default function LoginScreen({ navigation }) {
     } catch (resetError) {
       setErrorMessage(t(getAuthErrorKey(resetError?.code)));
       setErrorTarget('email');
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -127,12 +143,21 @@ export default function LoginScreen({ navigation }) {
         </Text>
       ) : null}
       <TouchableOpacity
-        style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
+        style={[
+          styles.primaryButton,
+          { backgroundColor: theme.colors.primary },
+          isLoggingIn && styles.disabledButton,
+        ]}
         onPress={handleLogin}
+        disabled={isLoggingIn}
       >
         <Text style={styles.primaryButtonText}>{t('auth.login.submit')}</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={handleResetPassword}>
+      <TouchableOpacity
+        onPress={handleResetPassword}
+        disabled={isResetting}
+        style={isResetting ? styles.disabledButton : null}
+      >
         <Text style={[styles.linkText, { color: theme.colors.primary }]}>
           {t('auth.reset.action')}
         </Text>
@@ -213,5 +238,8 @@ const styles = StyleSheet.create({
   linkText: {
     marginTop: 16,
     textAlign: 'center',
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 });

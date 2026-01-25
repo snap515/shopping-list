@@ -20,6 +20,9 @@ export default function ListInfoScreen({ route, navigation }) {
   const [renameError, setRenameError] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [leaveError, setLeaveError] = useState('');
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
   const unsubscribeRef = useRef(null);
   const { theme } = useTheme();
   const isOwner = auth.currentUser?.uid === listOwnerUid;
@@ -123,6 +126,10 @@ export default function ListInfoScreen({ route, navigation }) {
   };
 
   const handleRename = async () => {
+    if (isRenaming) {
+      return;
+    }
+
     const trimmedName = renameValue.trim();
     if (!trimmedName) {
       setRenameError(t('lists.rename.emptyName'));
@@ -130,10 +137,13 @@ export default function ListInfoScreen({ route, navigation }) {
     }
 
     setRenameError('');
+    setIsRenaming(true);
     try {
       await renameList(listId, trimmedName);
     } catch (renameErr) {
       setRenameError(t('lists.rename.error'));
+    } finally {
+      setIsRenaming(false);
     }
   };
 
@@ -143,11 +153,18 @@ export default function ListInfoScreen({ route, navigation }) {
     }
 
     const runDelete = async () => {
+      if (isDeleting) {
+        return;
+      }
+
       setDeleteError('');
+      setIsDeleting(true);
       try {
         await deleteList(listId);
       } catch (deleteErr) {
         setDeleteError(t('lists.delete.error'));
+      } finally {
+        setIsDeleting(false);
       }
     };
 
@@ -172,7 +189,12 @@ export default function ListInfoScreen({ route, navigation }) {
     }
 
     const runLeave = async () => {
+      if (isLeaving) {
+        return;
+      }
+
       setLeaveError('');
+      setIsLeaving(true);
       try {
         await leaveList({ listId, userUid: auth.currentUser?.uid });
         if (unsubscribeRef.current) {
@@ -187,6 +209,8 @@ export default function ListInfoScreen({ route, navigation }) {
         navigation.navigate('Tabs');
       } catch (leaveErr) {
         setLeaveError(t('listDetails.leave.error'));
+      } finally {
+        setIsLeaving(false);
       }
     };
 
@@ -259,7 +283,11 @@ export default function ListInfoScreen({ route, navigation }) {
                 placeholderTextColor={theme.colors.muted}
               />
               <TouchableOpacity
-                style={[styles.secondaryButton, { borderColor: theme.colors.primary }]}
+                style={[
+                  styles.secondaryButton,
+                  { borderColor: theme.colors.primary },
+                  isInviting && styles.disabledButton,
+                ]}
                 onPress={handleInvite}
                 disabled={isInviting}
               >
@@ -291,8 +319,13 @@ export default function ListInfoScreen({ route, navigation }) {
                 placeholderTextColor={theme.colors.muted}
               />
               <TouchableOpacity
-                style={[styles.secondaryButton, { borderColor: theme.colors.primary }]}
+                style={[
+                  styles.secondaryButton,
+                  { borderColor: theme.colors.primary },
+                  isRenaming && styles.disabledButton,
+                ]}
                 onPress={handleRename}
+                disabled={isRenaming}
               >
                 <Text style={[styles.secondaryButtonText, { color: theme.colors.primary }]}>
                   {t('common.save')}
@@ -308,8 +341,13 @@ export default function ListInfoScreen({ route, navigation }) {
 
           <View style={styles.section}>
             <TouchableOpacity
-              style={[styles.dangerButton, { borderColor: theme.colors.danger }]}
+              style={[
+                styles.dangerButton,
+                { borderColor: theme.colors.danger },
+                isDeleting && styles.disabledButton,
+              ]}
               onPress={handleDelete}
+              disabled={isDeleting}
             >
               <Text style={[styles.dangerButtonText, { color: theme.colors.danger }]}>
                 {t('lists.delete.action', { name: listName || t('listDetails.title') })}
@@ -325,8 +363,13 @@ export default function ListInfoScreen({ route, navigation }) {
       ) : (
         <View style={styles.section}>
           <TouchableOpacity
-            style={[styles.dangerButton, { borderColor: theme.colors.danger }]}
+            style={[
+              styles.dangerButton,
+              { borderColor: theme.colors.danger },
+              isLeaving && styles.disabledButton,
+            ]}
             onPress={handleLeave}
+            disabled={isLeaving}
           >
             <Text style={[styles.dangerButtonText, { color: theme.colors.danger }]}>
               {t('listDetails.leave.action')}
@@ -429,5 +472,8 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#c0392b',
     marginTop: 8,
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 });
