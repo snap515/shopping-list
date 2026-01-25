@@ -1,8 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { auth } from '../../lib/firebase';
-import { addListItem, deleteListItem, subscribeToList, subscribeToListItems, toggleListItem } from '../../lib/firestore';
+import {
+  addListItem,
+  clearListItems,
+  clearPurchasedItems,
+  deleteListItem,
+  subscribeToList,
+  subscribeToListItems,
+  toggleListItem,
+} from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
 
@@ -16,6 +24,7 @@ export default function ListDetailsScreen({ route, navigation }) {
   const [currentListName, setCurrentListName] = useState(listName || '');
   const [listExists, setListExists] = useState(true);
   const [hasShownDeletedNotice, setHasShownDeletedNotice] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
   const inputRef = useRef(null);
   const isOwner = auth.currentUser?.uid === listOwnerUid;
   const { theme } = useTheme();
@@ -146,12 +155,100 @@ export default function ListDetailsScreen({ route, navigation }) {
     }
   };
 
+  const handleClearPurchased = async () => {
+    try {
+      await clearPurchasedItems(listId);
+    } catch (clearError) {
+      setItemError(t('listDetails.actions.clearPurchasedError'));
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      await clearListItems(listId);
+    } catch (clearError) {
+      setItemError(t('listDetails.actions.clearAllError'));
+    }
+  };
+
+  const confirmClearPurchased = () => {
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(
+        `${t('listDetails.actions.clearPurchasedTitle')}\n${t(
+          'listDetails.actions.clearPurchasedMessage'
+        )}`
+      );
+      if (confirmed) {
+        handleClearPurchased();
+      }
+      return;
+    }
+
+    Alert.alert(
+      t('listDetails.actions.clearPurchasedTitle'),
+      t('listDetails.actions.clearPurchasedMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('common.delete'), onPress: handleClearPurchased },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const confirmClearAll = () => {
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(
+        `${t('listDetails.actions.clearAllTitle')}\n${t(
+          'listDetails.actions.clearAllMessage'
+        )}`
+      );
+      if (confirmed) {
+        handleClearAll();
+      }
+      return;
+    }
+
+    Alert.alert(
+      t('listDetails.actions.clearAllTitle'),
+      t('listDetails.actions.clearAllMessage'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('common.delete'), style: 'destructive', onPress: handleClearAll },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const openActionsMenu = () => {
+    if (Platform.OS === 'web') {
+      setActionsOpen(true);
+      return;
+    }
+
+    Alert.alert(
+      t('listDetails.actions.title'),
+      undefined,
+      [
+        { text: t('listDetails.actions.clearPurchased'), onPress: confirmClearPurchased },
+        { text: t('listDetails.actions.clearAll'), style: 'destructive', onPress: confirmClearAll },
+        { text: t('common.cancel'), style: 'cancel' },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.headerRow}>
         <Text style={[styles.title, { color: theme.colors.text }]}>
           {currentListName || t('listDetails.title')}
         </Text>
+        <TouchableOpacity
+          style={[styles.actionsButton, { borderColor: theme.colors.border }]}
+          onPress={openActionsMenu}
+        >
+          <Text style={[styles.actionsButtonText, { color: theme.colors.text }]}>...</Text>
+        </TouchableOpacity>
       </View>
       <View style={styles.formRow}>
         <TextInput
@@ -227,6 +324,50 @@ export default function ListDetailsScreen({ route, navigation }) {
           </View>
         )}
       />
+      {actionsOpen ? (
+        <View style={styles.actionsOverlay}>
+          <TouchableOpacity
+            style={styles.actionsBackdrop}
+            activeOpacity={1}
+            onPress={() => setActionsOpen(false)}
+          />
+          <View style={[styles.actionsMenu, { backgroundColor: theme.colors.surface }]}>
+            <Text style={[styles.actionsTitle, { color: theme.colors.text }]}>
+              {t('listDetails.actions.title')}
+            </Text>
+            <TouchableOpacity
+              style={styles.actionsItem}
+              onPress={() => {
+                setActionsOpen(false);
+                confirmClearPurchased();
+              }}
+            >
+              <Text style={[styles.actionsItemText, { color: theme.colors.text }]}>
+                {t('listDetails.actions.clearPurchased')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionsItem}
+              onPress={() => {
+                setActionsOpen(false);
+                confirmClearAll();
+              }}
+            >
+              <Text style={[styles.actionsItemText, { color: theme.colors.danger }]}>
+                {t('listDetails.actions.clearAll')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionsItem}
+              onPress={() => setActionsOpen(false)}
+            >
+              <Text style={[styles.actionsItemText, { color: theme.colors.muted }]}>
+                {t('common.cancel')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -242,6 +383,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
     marginBottom: 12,
+  },
+  actionsButton: {
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionsButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 1,
+    lineHeight: 18,
+    textAlign: 'center',
   },
   title: {
     fontSize: 20,
@@ -278,6 +434,39 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 12,
+  },
+  actionsOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+  },
+  actionsBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  actionsMenu: {
+    marginTop: 16,
+    marginRight: 24,
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#d0d0d0',
+    minWidth: 200,
+  },
+  actionsTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  actionsItem: {
+    paddingVertical: 8,
+  },
+  actionsItemText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   itemRow: {
     borderColor: '#e1e1e1',
