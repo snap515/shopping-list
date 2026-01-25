@@ -120,6 +120,13 @@ export default {
     renameTitle: 'Liste umbenennen',
   },
   items: {
+    rename: {
+      action: 'Artikel umbenennen',
+      save: 'Artikel speichern',
+      cancel: 'Umbenennen abbrechen',
+      empty: 'Neuen Artikelnamen eingeben.',
+      error: 'Artikel konnte nicht umbenannt werden.',
+    },
     add: {
       empty: 'Artikel eingeben.',
       error: 'Artikel konnte nicht hinzugefügt werden.',

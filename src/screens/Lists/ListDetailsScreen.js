@@ -11,6 +11,7 @@ import {
   subscribeToList,
   subscribeToListItems,
   toggleListItem,
+  updateListItemText,
 } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
@@ -21,6 +22,9 @@ export default function ListDetailsScreen({ route, navigation }) {
   const [itemText, setItemText] = useState('');
   const [itemError, setItemError] = useState('');
   const [itemActionErrors, setItemActionErrors] = useState({});
+  const [editErrors, setEditErrors] = useState({});
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [editingText, setEditingText] = useState('');
   const [listOwnerUid, setListOwnerUid] = useState(ownerUid);
   const [currentListName, setCurrentListName] = useState(listName || '');
   const [listExists, setListExists] = useState(true);
@@ -34,6 +38,7 @@ export default function ListDetailsScreen({ route, navigation }) {
     useCallback(() => {
       setItemError('');
       setItemActionErrors({});
+      setEditErrors({});
     }, [])
   );
 
@@ -152,6 +157,54 @@ export default function ListDetailsScreen({ route, navigation }) {
       setItemActionErrors((prev) => ({
         ...prev,
         [itemId]: t('items.delete.error'),
+      }));
+    }
+  };
+
+  const startEdit = (item) => {
+    setEditingItemId(item.id);
+    setEditingText(item.text || '');
+    setEditErrors((prev) => {
+      if (!prev[item.id]) {
+        return prev;
+      }
+      const next = { ...prev };
+      delete next[item.id];
+      return next;
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingItemId(null);
+    setEditingText('');
+  };
+
+  const saveEdit = async (itemId) => {
+    const trimmedText = editingText.trim();
+    if (!trimmedText) {
+      setEditErrors((prev) => ({
+        ...prev,
+        [itemId]: t('items.rename.empty'),
+      }));
+      return;
+    }
+
+    try {
+      await updateListItemText(listId, itemId, trimmedText);
+      setEditingItemId(null);
+      setEditingText('');
+      setEditErrors((prev) => {
+        if (!prev[itemId]) {
+          return prev;
+        }
+        const next = { ...prev };
+        delete next[itemId];
+        return next;
+      });
+    } catch (renameError) {
+      setEditErrors((prev) => ({
+        ...prev,
+        [itemId]: t('items.rename.error'),
       }));
     }
   };
@@ -289,7 +342,12 @@ export default function ListDetailsScreen({ route, navigation }) {
             >
               <TouchableOpacity
                 style={styles.itemToggle}
-                onPress={() => handleToggle(item)}
+                onPress={() => {
+                  if (editingItemId === item.id) {
+                    return;
+                  }
+                  handleToggle(item);
+                }}
               >
                 <View
                   style={[
@@ -298,27 +356,81 @@ export default function ListDetailsScreen({ route, navigation }) {
                     item.done && { backgroundColor: theme.colors.primary },
                   ]}
                 />
-                <Text
-                  style={[
-                    styles.itemText,
-                    { color: theme.colors.text },
-                    item.done && { color: theme.colors.muted, textDecorationLine: 'line-through' },
-                  ]}
-                >
-                  {item.text}
-                </Text>
+                {editingItemId === item.id ? (
+                  <TextInput
+                    value={editingText}
+                    onChangeText={setEditingText}
+                    onSubmitEditing={() => saveEdit(item.id)}
+                    returnKeyType="done"
+                    style={[
+                      styles.itemTextInput,
+                      { borderColor: theme.colors.border, color: theme.colors.text },
+                    ]}
+                    placeholderTextColor={theme.colors.muted}
+                    autoFocus
+                  />
+                ) : (
+                  <Text
+                    style={[
+                      styles.itemText,
+                      { color: theme.colors.text },
+                      item.done && { color: theme.colors.muted, textDecorationLine: 'line-through' },
+                    ]}
+                  >
+                    {item.text}
+                  </Text>
+                )}
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDelete(item.id)}
-                accessibilityLabel={t('common.delete')}
-              >
-                <MaterialIcons name="delete-outline" size={22} color={theme.colors.danger} />
-              </TouchableOpacity>
+              <View style={styles.itemActions}>
+                {editingItemId === item.id ? (
+                  <>
+                    <TouchableOpacity
+                      style={styles.iconButton}
+                      onPress={() => saveEdit(item.id)}
+                      accessibilityLabel={t('items.rename.save')}
+                    >
+                      <MaterialIcons name="check" size={22} color={theme.colors.primary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.iconButton}
+                      onPress={cancelEdit}
+                      accessibilityLabel={t('items.rename.cancel')}
+                    >
+                      <MaterialIcons name="close" size={22} color={theme.colors.muted} />
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      style={styles.iconButton}
+                      onPress={() => startEdit(item)}
+                      accessibilityLabel={t('items.rename.action')}
+                    >
+                      <MaterialIcons name="edit" size={20} color={theme.colors.primary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.iconButton}
+                      onPress={() => handleDelete(item.id)}
+                      accessibilityLabel={t('common.delete')}
+                    >
+                      <MaterialIcons
+                        name="delete-outline"
+                        size={22}
+                        color={theme.colors.danger}
+                      />
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
             </View>
             {itemActionErrors[item.id] ? (
               <Text style={[styles.errorText, { color: theme.colors.danger }]}>
                 {itemActionErrors[item.id]}
+              </Text>
+            ) : null}
+            {editErrors[item.id] ? (
+              <Text style={[styles.errorText, { color: theme.colors.danger }]}>
+                {editErrors[item.id]}
               </Text>
             ) : null}
           </View>
@@ -494,8 +606,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     flexShrink: 1,
   },
-  deleteButton: {
-    marginLeft: 12,
+  itemTextInput: {
+    flex: 1,
+    borderColor: '#d0d0d0',
+    borderRadius: 6,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  itemActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  iconButton: {
     paddingHorizontal: 6,
     paddingVertical: 6,
     minWidth: 32,

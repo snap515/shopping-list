@@ -122,6 +122,13 @@ export default {
       placeholder: 'Add an item',
       submit: 'Add',
     },
+    rename: {
+      action: 'Rename item',
+      save: 'Save item',
+      cancel: 'Cancel rename',
+      empty: 'Enter a new item name.',
+      error: 'Could not rename the item.',
+    },
     toggle: {
       error: 'Could not update the item.',
     },

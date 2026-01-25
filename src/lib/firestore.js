@@ -202,6 +202,9 @@ export const addListItem = async ({ listId, text, createdByUid }) =>
 export const toggleListItem = (listId, itemId, done) =>
   updateDoc(doc(db, 'lists', listId, 'items', itemId), { done });
 
+export const updateListItemText = (listId, itemId, text) =>
+  updateDoc(doc(db, 'lists', listId, 'items', itemId), { text });
+
 export const deleteListItem = (listId, itemId) =>
   deleteDoc(doc(db, 'lists', listId, 'items', itemId));
 
