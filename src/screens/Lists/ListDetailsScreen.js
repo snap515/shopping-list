@@ -605,6 +605,7 @@ const styles = StyleSheet.create({
   itemText: {
     fontSize: 16,
     flexShrink: 1,
+    ...(Platform.OS === 'web' ? { wordBreak: 'break-all' } : null),
   },
   itemTextInput: {
     flex: 1,
