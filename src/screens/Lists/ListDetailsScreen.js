@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, FlatList, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { auth } from '../../lib/firebase';
 import {
@@ -310,10 +311,9 @@ export default function ListDetailsScreen({ route, navigation }) {
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => handleDelete(item.id)}
+                accessibilityLabel={t('common.delete')}
               >
-                <Text style={[styles.deleteButtonText, { color: theme.colors.danger }]}>
-                  {t('common.delete')}
-                </Text>
+                <MaterialIcons name="delete-outline" size={22} color={theme.colors.danger} />
               </TouchableOpacity>
             </View>
             {itemActionErrors[item.id] ? (
@@ -492,15 +492,14 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontSize: 16,
+    flexShrink: 1,
   },
   deleteButton: {
     marginLeft: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  deleteButtonText: {
-    color: '#c0392b',
-    fontSize: 18,
-    fontWeight: '700',
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+    minWidth: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
