@@ -11,6 +11,7 @@ export default function ListsScreen({ navigation }) {
   const [lists, setLists] = useState([]);
   const [listName, setListName] = useState('');
   const [createError, setCreateError] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
   const { theme } = useTheme();
   const { locale } = useLocale();
 
@@ -30,6 +31,10 @@ export default function ListsScreen({ navigation }) {
   }, []);
 
   const handleCreateList = async () => {
+    if (isCreating) {
+      return;
+    }
+
     const trimmedName = listName.trim();
     if (!trimmedName) {
       setCreateError(t('lists.create.emptyName'));
@@ -37,6 +42,7 @@ export default function ListsScreen({ navigation }) {
     }
 
     setCreateError('');
+    setIsCreating(true);
     try {
       await createList({
         name: trimmedName,
@@ -50,6 +56,8 @@ export default function ListsScreen({ navigation }) {
       } else {
         setCreateError(t('lists.create.error'));
       }
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -72,8 +80,13 @@ export default function ListsScreen({ navigation }) {
           placeholderTextColor={theme.colors.muted}
         />
         <TouchableOpacity
-          style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
+          style={[
+            styles.primaryButton,
+            { backgroundColor: theme.colors.primary },
+            isCreating && styles.disabledButton,
+          ]}
           onPress={handleCreateList}
+          disabled={isCreating}
         >
           <Text style={styles.primaryButtonText}>{t('lists.create.submit')}</Text>
         </TouchableOpacity>
@@ -210,5 +223,8 @@ const styles = StyleSheet.create({
     color: '#1f5eff',
     fontSize: 12,
     fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 });

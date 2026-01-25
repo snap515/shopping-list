@@ -22,9 +22,13 @@ export default function ListDetailsScreen({ route, navigation }) {
   const [itemText, setItemText] = useState('');
   const [itemError, setItemError] = useState('');
   const [itemActionErrors, setItemActionErrors] = useState({});
+  const [itemActionPending, setItemActionPending] = useState({});
+  const [isAddingItem, setIsAddingItem] = useState(false);
   const [editErrors, setEditErrors] = useState({});
   const [editingItemId, setEditingItemId] = useState(null);
   const [editingText, setEditingText] = useState('');
+  const [savingEditId, setSavingEditId] = useState(null);
+  const [isClearing, setIsClearing] = useState(false);
   const [listOwnerUid, setListOwnerUid] = useState(ownerUid);
   const [currentListName, setCurrentListName] = useState(listName || '');
   const [listExists, setListExists] = useState(true);
@@ -103,6 +107,10 @@ export default function ListDetailsScreen({ route, navigation }) {
   }, [items]);
 
   const handleAddItem = async () => {
+    if (isAddingItem) {
+      return;
+    }
+
     const trimmedText = itemText.trim();
     if (!trimmedText) {
       setItemError(t('items.add.empty'));
@@ -110,6 +118,7 @@ export default function ListDetailsScreen({ route, navigation }) {
     }
 
     setItemError('');
+    setIsAddingItem(true);
     try {
       await addListItem({
         listId,
@@ -120,10 +129,17 @@ export default function ListDetailsScreen({ route, navigation }) {
       inputRef.current?.focus();
     } catch (addError) {
       setItemError(t('items.add.error'));
+    } finally {
+      setIsAddingItem(false);
     }
   };
 
   const handleToggle = async (item) => {
+    if (itemActionPending[item.id]) {
+      return;
+    }
+
+    setItemActionPending((prev) => ({ ...prev, [item.id]: 'toggle' }));
     try {
       await toggleListItem(listId, item.id, !item.done);
       setItemActionErrors((prev) => {
@@ -139,10 +155,21 @@ export default function ListDetailsScreen({ route, navigation }) {
         ...prev,
         [item.id]: t('items.toggle.error'),
       }));
+    } finally {
+      setItemActionPending((prev) => {
+        const next = { ...prev };
+        delete next[item.id];
+        return next;
+      });
     }
   };
 
   const handleDelete = async (itemId) => {
+    if (itemActionPending[itemId]) {
+      return;
+    }
+
+    setItemActionPending((prev) => ({ ...prev, [itemId]: 'delete' }));
     try {
       await deleteListItem(listId, itemId);
       setItemActionErrors((prev) => {
@@ -158,6 +185,12 @@ export default function ListDetailsScreen({ route, navigation }) {
         ...prev,
         [itemId]: t('items.delete.error'),
       }));
+    } finally {
+      setItemActionPending((prev) => {
+        const next = { ...prev };
+        delete next[itemId];
+        return next;
+      });
     }
   };
 
@@ -180,6 +213,10 @@ export default function ListDetailsScreen({ route, navigation }) {
   };
 
   const saveEdit = async (itemId) => {
+    if (savingEditId) {
+      return;
+    }
+
     const trimmedText = editingText.trim();
     if (!trimmedText) {
       setEditErrors((prev) => ({
@@ -189,6 +226,7 @@ export default function ListDetailsScreen({ route, navigation }) {
       return;
     }
 
+    setSavingEditId(itemId);
     try {
       await updateListItemText(listId, itemId, trimmedText);
       setEditingItemId(null);
@@ -206,22 +244,38 @@ export default function ListDetailsScreen({ route, navigation }) {
         ...prev,
         [itemId]: t('items.rename.error'),
       }));
+    } finally {
+      setSavingEditId(null);
     }
   };
 
   const handleClearPurchased = async () => {
+    if (isClearing) {
+      return;
+    }
+
+    setIsClearing(true);
     try {
       await clearPurchasedItems(listId);
     } catch (clearError) {
       setItemError(t('listDetails.actions.clearPurchasedError'));
+    } finally {
+      setIsClearing(false);
     }
   };
 
   const handleClearAll = async () => {
+    if (isClearing) {
+      return;
+    }
+
+    setIsClearing(true);
     try {
       await clearListItems(listId);
     } catch (clearError) {
       setItemError(t('listDetails.actions.clearAllError'));
+    } finally {
+      setIsClearing(false);
     }
   };
 
@@ -298,8 +352,13 @@ export default function ListDetailsScreen({ route, navigation }) {
           {currentListName || t('listDetails.title')}
         </Text>
         <TouchableOpacity
-          style={[styles.actionsButton, { borderColor: theme.colors.border }]}
+          style={[
+            styles.actionsButton,
+            { borderColor: theme.colors.border },
+            isClearing && styles.disabledButton,
+          ]}
           onPress={openActionsMenu}
+          disabled={isClearing}
         >
           <Text style={[styles.actionsButtonText, { color: theme.colors.text }]}>...</Text>
         </TouchableOpacity>
@@ -319,8 +378,13 @@ export default function ListDetailsScreen({ route, navigation }) {
           placeholderTextColor={theme.colors.muted}
         />
         <TouchableOpacity
-          style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
+          style={[
+            styles.primaryButton,
+            { backgroundColor: theme.colors.primary },
+            isAddingItem && styles.disabledButton,
+          ]}
           onPress={handleAddItem}
+          disabled={isAddingItem}
         >
           <Text style={styles.primaryButtonText}>{t('items.add.submit')}</Text>
         </TouchableOpacity>
@@ -348,6 +412,7 @@ export default function ListDetailsScreen({ route, navigation }) {
                   }
                   handleToggle(item);
                 }}
+                disabled={!!itemActionPending[item.id] || editingItemId === item.id}
               >
                 <View
                   style={[
@@ -385,16 +450,24 @@ export default function ListDetailsScreen({ route, navigation }) {
                 {editingItemId === item.id ? (
                   <>
                     <TouchableOpacity
-                      style={styles.iconButton}
+                      style={[
+                        styles.iconButton,
+                        savingEditId === item.id && styles.disabledButton,
+                      ]}
                       onPress={() => saveEdit(item.id)}
                       accessibilityLabel={t('items.rename.save')}
+                      disabled={savingEditId === item.id}
                     >
                       <MaterialIcons name="check" size={22} color={theme.colors.primary} />
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={styles.iconButton}
+                      style={[
+                        styles.iconButton,
+                        savingEditId === item.id && styles.disabledButton,
+                      ]}
                       onPress={cancelEdit}
                       accessibilityLabel={t('items.rename.cancel')}
+                      disabled={savingEditId === item.id}
                     >
                       <MaterialIcons name="close" size={22} color={theme.colors.muted} />
                     </TouchableOpacity>
@@ -402,16 +475,24 @@ export default function ListDetailsScreen({ route, navigation }) {
                 ) : (
                   <>
                     <TouchableOpacity
-                      style={styles.iconButton}
+                      style={[
+                        styles.iconButton,
+                        itemActionPending[item.id] && styles.disabledButton,
+                      ]}
                       onPress={() => startEdit(item)}
                       accessibilityLabel={t('items.rename.action')}
+                      disabled={!!itemActionPending[item.id]}
                     >
                       <MaterialIcons name="edit" size={20} color={theme.colors.primary} />
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={styles.iconButton}
+                      style={[
+                        styles.iconButton,
+                        itemActionPending[item.id] && styles.disabledButton,
+                      ]}
                       onPress={() => handleDelete(item.id)}
                       accessibilityLabel={t('common.delete')}
+                      disabled={!!itemActionPending[item.id]}
                     >
                       <MaterialIcons
                         name="delete-outline"
@@ -453,8 +534,15 @@ export default function ListDetailsScreen({ route, navigation }) {
                 setActionsOpen(false);
                 confirmClearPurchased();
               }}
+              disabled={isClearing}
             >
-              <Text style={[styles.actionsItemText, { color: theme.colors.text }]}>
+              <Text
+                style={[
+                  styles.actionsItemText,
+                  { color: theme.colors.text },
+                  isClearing && styles.disabledButton,
+                ]}
+              >
                 {t('listDetails.actions.clearPurchased')}
               </Text>
             </TouchableOpacity>
@@ -464,8 +552,15 @@ export default function ListDetailsScreen({ route, navigation }) {
                 setActionsOpen(false);
                 confirmClearAll();
               }}
+              disabled={isClearing}
             >
-              <Text style={[styles.actionsItemText, { color: theme.colors.danger }]}>
+              <Text
+                style={[
+                  styles.actionsItemText,
+                  { color: theme.colors.danger },
+                  isClearing && styles.disabledButton,
+                ]}
+              >
                 {t('listDetails.actions.clearAll')}
               </Text>
             </TouchableOpacity>
@@ -539,6 +634,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
   errorText: {
     color: '#c0392b',

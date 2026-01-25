@@ -14,6 +14,7 @@ export default function RegisterScreen({ navigation }) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [errorTarget, setErrorTarget] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
   const passwordRef = useRef(null);
   const { theme } = useTheme();
   const { locale } = useLocale();
@@ -26,8 +27,13 @@ export default function RegisterScreen({ navigation }) {
   );
 
   const handleRegister = async () => {
+    if (isRegistering) {
+      return;
+    }
+
     setErrorMessage('');
     setErrorTarget('');
+    setIsRegistering(true);
     try {
       const userCredential = await registerWithEmail(email.trim(), password);
       await createUserProfile({
@@ -42,6 +48,8 @@ export default function RegisterScreen({ navigation }) {
           : 'password';
       setErrorMessage(t(getAuthErrorKey(code)));
       setErrorTarget(target);
+    } finally {
+      setIsRegistering(false);
     }
   };
 
@@ -101,8 +109,13 @@ export default function RegisterScreen({ navigation }) {
         </Text>
       ) : null}
       <TouchableOpacity
-        style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
+        style={[
+          styles.primaryButton,
+          { backgroundColor: theme.colors.primary },
+          isRegistering && styles.disabledButton,
+        ]}
         onPress={handleRegister}
+        disabled={isRegistering}
       >
         <Text style={styles.primaryButtonText}>{t('auth.register.submit')}</Text>
       </TouchableOpacity>
@@ -180,5 +193,8 @@ const styles = StyleSheet.create({
     color: '#1f5eff',
     marginTop: 16,
     textAlign: 'center',
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 });

@@ -10,6 +10,7 @@ import { useLocale } from '../../lib/i18n/LocaleProvider';
 export default function InvitesScreen() {
   const [invites, setInvites] = useState([]);
   const [inviteErrors, setInviteErrors] = useState({});
+  const [pendingActions, setPendingActions] = useState({});
   const { theme } = useTheme();
   const { locale } = useLocale();
 
@@ -29,6 +30,10 @@ export default function InvitesScreen() {
   }, []);
 
   const handleAccept = async (invite) => {
+    if (pendingActions[invite.id]) {
+      return;
+    }
+
     setInviteErrors((prev) => {
       if (!prev[invite.id]) {
         return prev;
@@ -37,6 +42,7 @@ export default function InvitesScreen() {
       delete next[invite.id];
       return next;
     });
+    setPendingActions((prev) => ({ ...prev, [invite.id]: 'accept' }));
     try {
       await acceptInvite({
         inviteId: invite.id,
@@ -46,10 +52,20 @@ export default function InvitesScreen() {
       });
     } catch (acceptError) {
       setInviteErrors((prev) => ({ ...prev, [invite.id]: t('invites.acceptError') }));
+    } finally {
+      setPendingActions((prev) => {
+        const next = { ...prev };
+        delete next[invite.id];
+        return next;
+      });
     }
   };
 
   const handleDecline = async (inviteId) => {
+    if (pendingActions[inviteId]) {
+      return;
+    }
+
     setInviteErrors((prev) => {
       if (!prev[inviteId]) {
         return prev;
@@ -58,10 +74,17 @@ export default function InvitesScreen() {
       delete next[inviteId];
       return next;
     });
+    setPendingActions((prev) => ({ ...prev, [inviteId]: 'decline' }));
     try {
       await declineInvite(inviteId);
     } catch (declineError) {
       setInviteErrors((prev) => ({ ...prev, [inviteId]: t('invites.declineError') }));
+    } finally {
+      setPendingActions((prev) => {
+        const next = { ...prev };
+        delete next[inviteId];
+        return next;
+      });
     }
   };
 
@@ -92,14 +115,24 @@ export default function InvitesScreen() {
             </Text>
             <View style={styles.actions}>
               <TouchableOpacity
-                style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
+                style={[
+                  styles.primaryButton,
+                  { backgroundColor: theme.colors.primary },
+                  pendingActions[item.id] && styles.disabledButton,
+                ]}
                 onPress={() => handleAccept(item)}
+                disabled={!!pendingActions[item.id]}
               >
                 <Text style={styles.primaryButtonText}>{t('invites.accept')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.secondaryButton, { borderColor: theme.colors.primary }]}
+                style={[
+                  styles.secondaryButton,
+                  { borderColor: theme.colors.primary },
+                  pendingActions[item.id] && styles.disabledButton,
+                ]}
                 onPress={() => handleDecline(item.id)}
+                disabled={!!pendingActions[item.id]}
               >
                 <Text style={[styles.secondaryButtonText, { color: theme.colors.primary }]}>
                   {t('invites.decline')}
@@ -172,5 +205,8 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 });
