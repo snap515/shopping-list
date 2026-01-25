@@ -204,3 +204,26 @@ export const toggleListItem = (listId, itemId, done) =>
 
 export const deleteListItem = (listId, itemId) =>
   deleteDoc(doc(db, 'lists', listId, 'items', itemId));
+
+const deleteItemsByQuery = async (itemsQuery) => {
+  const snapshot = await getDocs(itemsQuery);
+  if (snapshot.empty) {
+    return;
+  }
+
+  const batch = writeBatch(db);
+  snapshot.docs.forEach((docSnap) => {
+    batch.delete(docSnap.ref);
+  });
+  await batch.commit();
+};
+
+export const clearPurchasedItems = async (listId) => {
+  const itemsQuery = query(listItemsCollection(listId), where('done', '==', true));
+  await deleteItemsByQuery(itemsQuery);
+};
+
+export const clearListItems = async (listId) => {
+  const itemsQuery = query(listItemsCollection(listId));
+  await deleteItemsByQuery(itemsQuery);
+};

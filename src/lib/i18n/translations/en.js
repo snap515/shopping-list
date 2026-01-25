@@ -94,6 +94,17 @@ export default {
       toastTitle: 'Left list',
       toast: 'You left the list "%{name}".',
     },
+    actions: {
+      title: 'List actions',
+      clearPurchased: 'Clear purchased',
+      clearAll: 'Clear all',
+      clearPurchasedTitle: 'Clear purchased items?',
+      clearPurchasedMessage: 'This will remove all purchased items.',
+      clearAllTitle: 'Clear the list?',
+      clearAllMessage: 'This will remove all items from the list.',
+      clearPurchasedError: 'Could not clear purchased items.',
+      clearAllError: 'Could not clear the list.',
+    },
   },
   listInfo: {
     title: 'List settings',

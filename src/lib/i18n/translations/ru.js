@@ -94,6 +94,17 @@ export default {
       toastTitle: 'Список покинут',
       toast: 'Вы покинули список "%{name}".',
     },
+    actions: {
+      title: 'Действия со списком',
+      clearPurchased: 'Очистить купленное',
+      clearAll: 'Очистить список',
+      clearPurchasedTitle: 'Очистить купленное?',
+      clearPurchasedMessage: 'Все купленные товары будут удалены.',
+      clearAllTitle: 'Очистить список?',
+      clearAllMessage: 'Все товары будут удалены из списка.',
+      clearPurchasedError: 'Не удалось очистить купленное.',
+      clearAllError: 'Не удалось очистить список.',
+    },
   },
   listInfo: {
     title: 'Настройки списка',
