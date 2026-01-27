@@ -14,7 +14,12 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.snap515.shoppinglist",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -27,6 +32,9 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      "expo-notifications"
+    ],
     "extra": {
       "firebase": {
         "apiKey": "AIzaSyAXQC-HXoBNObIIbv1_WSCRY1cGon9r25w",
@@ -35,6 +43,9 @@
         "storageBucket": "shopping-list-ed7a3.firebasestorage.app",
         "messagingSenderId": "660375284959",
         "appId": "1:660375284959:web:5c6cda7a90720abec68d6a"
+      },
+      "eas": {
+        "projectId": "d63f2268-3ad0-4c78-bc9e-9b169d9e284d"
       }
     }
   }

@@ -6,6 +6,7 @@ import { acceptInvite, declineInvite, subscribeToIncomingInvites } from '../../l
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
 import { useLocale } from '../../lib/i18n/LocaleProvider';
+import { useToast } from '../../lib/toast';
 
 export default function InvitesScreen() {
   const [invites, setInvites] = useState([]);
@@ -13,6 +14,7 @@ export default function InvitesScreen() {
   const [pendingActions, setPendingActions] = useState({});
   const { theme } = useTheme();
   const { locale } = useLocale();
+  const { showToast } = useToast();
 
   useFocusEffect(
     useCallback(() => {
@@ -50,6 +52,7 @@ export default function InvitesScreen() {
         userUid: auth.currentUser?.uid || 'unknown',
         userEmail: auth.currentUser?.email || '',
       });
+      showToast(t('invites.acceptSuccess', { name: invite.listName || invite.listId }));
     } catch (acceptError) {
       setInviteErrors((prev) => ({ ...prev, [invite.id]: t('invites.acceptError') }));
     } finally {

@@ -5,6 +5,7 @@ import { auth } from '../../lib/firebase';
 import { createInvite, deleteList, leaveList, renameList, subscribeToList } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
+import { useToast } from '../../lib/toast';
 
 export default function ListInfoScreen({ route, navigation }) {
   const { listId } = route.params || {};
@@ -26,6 +27,7 @@ export default function ListInfoScreen({ route, navigation }) {
   const unsubscribeRef = useRef(null);
   const { theme } = useTheme();
   const isOwner = auth.currentUser?.uid === listOwnerUid;
+  const { showToast } = useToast();
 
   useFocusEffect(
     useCallback(() => {
@@ -109,6 +111,7 @@ export default function ListInfoScreen({ route, navigation }) {
         toEmail: trimmedEmail,
       });
       setInviteEmail('');
+      showToast(t('invites.create.sent', { email: trimmedEmail }));
     } catch (inviteErr) {
       const code = inviteErr?.code;
       if (code === 'invite/already-member') {
@@ -140,6 +143,7 @@ export default function ListInfoScreen({ route, navigation }) {
     setIsRenaming(true);
     try {
       await renameList(listId, trimmedName);
+      showToast(t('lists.rename.toast', { name: trimmedName }));
     } catch (renameErr) {
       setRenameError(t('lists.rename.error'));
     } finally {
@@ -161,6 +165,7 @@ export default function ListInfoScreen({ route, navigation }) {
       setIsDeleting(true);
       try {
         await deleteList(listId);
+        showToast(t('lists.delete.toast', { name: listName || t('listDetails.title') }));
       } catch (deleteErr) {
         setDeleteError(t('lists.delete.error'));
       } finally {
@@ -201,11 +206,7 @@ export default function ListInfoScreen({ route, navigation }) {
           unsubscribeRef.current();
           unsubscribeRef.current = null;
         }
-        Alert.alert(
-          t('listDetails.leave.toastTitle'),
-          t('listDetails.leave.toast', { name: listName || t('listDetails.title') }),
-          [{ text: t('common.ok') }]
-        );
+        showToast(t('listDetails.leave.toast', { name: listName || t('listDetails.title') }));
         navigation.navigate('Tabs');
       } catch (leaveErr) {
         setLeaveError(t('listDetails.leave.error'));

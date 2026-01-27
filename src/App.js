@@ -5,6 +5,7 @@ import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RootNavigator from './navigation/RootNavigator';
 import { LocaleProvider, useLocale } from './lib/i18n/LocaleProvider';
+import { ToastProvider } from './lib/toast';
 import { ThemeProvider, useTheme } from './lib/theme/ThemeProvider';
 
 const GH_PAGES_BASE = '/shopping-list';
@@ -105,7 +106,9 @@ export default function App() {
     <SafeAreaProvider>
       <ThemeProvider>
         <LocaleProvider>
-          <AppContainer />
+          <ToastProvider>
+            <AppContainer />
+          </ToastProvider>
         </LocaleProvider>
       </ThemeProvider>
     </SafeAreaProvider>

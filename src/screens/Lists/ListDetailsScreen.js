@@ -15,6 +15,7 @@ import {
 } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
+import { useToast } from '../../lib/toast';
 
 export default function ListDetailsScreen({ route, navigation }) {
   const { listId, ownerUid, listName } = route.params || {};
@@ -37,6 +38,7 @@ export default function ListDetailsScreen({ route, navigation }) {
   const inputRef = useRef(null);
   const isOwner = auth.currentUser?.uid === listOwnerUid;
   const { theme } = useTheme();
+  const { showToast } = useToast();
 
   useFocusEffect(
     useCallback(() => {
@@ -257,6 +259,7 @@ export default function ListDetailsScreen({ route, navigation }) {
     setIsClearing(true);
     try {
       await clearPurchasedItems(listId);
+      showToast(t('listDetails.actions.clearPurchasedToast'));
     } catch (clearError) {
       setItemError(t('listDetails.actions.clearPurchasedError'));
     } finally {
@@ -272,6 +275,7 @@ export default function ListDetailsScreen({ route, navigation }) {
     setIsClearing(true);
     try {
       await clearListItems(listId);
+      showToast(t('listDetails.actions.clearAllToast'));
     } catch (clearError) {
       setItemError(t('listDetails.actions.clearAllError'));
     } finally {

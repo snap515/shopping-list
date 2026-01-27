@@ -6,6 +6,7 @@ import { createList, subscribeToUserLists } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useTheme } from '../../lib/theme/ThemeProvider';
 import { useLocale } from '../../lib/i18n/LocaleProvider';
+import { useToast } from '../../lib/toast';
 
 export default function ListsScreen({ navigation }) {
   const [lists, setLists] = useState([]);
@@ -14,6 +15,7 @@ export default function ListsScreen({ navigation }) {
   const [isCreating, setIsCreating] = useState(false);
   const { theme } = useTheme();
   const { locale } = useLocale();
+  const { showToast } = useToast();
 
   useFocusEffect(
     useCallback(() => {
@@ -50,6 +52,7 @@ export default function ListsScreen({ navigation }) {
         ownerEmail: auth.currentUser.email,
       });
       setListName('');
+      showToast(t('lists.create.toast', { name: trimmedName }));
     } catch (createError) {
       if (createError?.code === 'permission-denied') {
         setCreateError(t('lists.create.permissionDenied'));

@@ -104,6 +104,8 @@ export default {
       clearAllMessage: 'Alle Artikel werden aus der Liste entfernt.',
       clearPurchasedError: 'Gekaufte Artikel konnten nicht geloescht werden.',
       clearAllError: 'Liste konnte nicht geleert werden.',
+      clearPurchasedToast: 'Gekaufte Artikel geloescht.',
+      clearAllToast: 'Liste geleert.',
     },
     membersTitle: 'Teilnehmer',
     membersEmpty: 'Noch keine Teilnehmer.',
