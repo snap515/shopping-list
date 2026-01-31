@@ -123,6 +123,10 @@ export default {
     renameTitle: 'Liste umbenennen',
   },
   items: {
+    meta: {
+      createdBy: 'Hinzugefügt von:',
+      doneBy: 'Erledigt von:',
+    },
     rename: {
       action: 'Artikel umbenennen',
       save: 'Artikel speichern',

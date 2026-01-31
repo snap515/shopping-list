@@ -199,16 +199,28 @@ export const subscribeToListItems = (listId, onChange, onError) => {
   );
 };
 
-export const addListItem = async ({ listId, text, createdByUid }) =>
+export const addListItem = async ({ listId, text, createdByUid, createdByEmail }) =>
   addDoc(listItemsCollection(listId), {
     text,
     done: false,
     createdAt: serverTimestamp(),
     createdByUid,
+    ...(createdByEmail ? { createdByEmail } : {}),
   });
 
-export const toggleListItem = (listId, itemId, done) =>
-  updateDoc(doc(db, 'lists', listId, 'items', itemId), { done });
+export const toggleListItem = (listId, itemId, done, doneByUid, doneByEmail) =>
+  updateDoc(doc(db, 'lists', listId, 'items', itemId), {
+    done,
+    ...(done
+      ? {
+          ...(doneByUid ? { doneByUid } : {}),
+          ...(doneByEmail ? { doneByEmail } : {}),
+        }
+      : {
+          doneByUid: deleteField(),
+          doneByEmail: deleteField(),
+        }),
+  });
 
 export const updateListItemText = (listId, itemId, text) =>
   updateDoc(doc(db, 'lists', listId, 'items', itemId), { text });

@@ -145,6 +145,7 @@ export default function ListDetailsScreen({ route, navigation }) {
         listId,
         text: trimmedText,
         createdByUid: auth.currentUser?.uid || 'unknown',
+        createdByEmail: auth.currentUser?.email || '',
       });
       setItemText('');
       inputRef.current?.focus();
@@ -162,7 +163,13 @@ export default function ListDetailsScreen({ route, navigation }) {
 
     setItemActionPending((prev) => ({ ...prev, [item.id]: 'toggle' }));
     try {
-      await toggleListItem(listId, item.id, !item.done);
+      await toggleListItem(
+        listId,
+        item.id,
+        !item.done,
+        auth.currentUser?.uid || '',
+        auth.currentUser?.email || ''
+      );
       setItemActionErrors((prev) => {
         if (!prev[item.id]) {
           return prev;
@@ -458,15 +465,28 @@ export default function ListDetailsScreen({ route, navigation }) {
                     autoFocus
                   />
                 ) : (
-                  <Text
-                    style={[
-                      styles.itemText,
-                      { color: theme.colors.text },
-                      item.done && { color: theme.colors.muted, textDecorationLine: 'line-through' },
-                    ]}
-                  >
-                    {item.text}
-                  </Text>
+                  <View style={styles.itemTextBlock}>
+                    <Text
+                      style={[
+                        styles.itemText,
+                        { color: theme.colors.text },
+                        item.done && { color: theme.colors.muted, textDecorationLine: 'line-through' },
+                      ]}
+                    >
+                      {item.text}
+                    </Text>
+                    <Text
+                      style={[styles.itemMeta, { color: theme.colors.muted }]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {item.done
+                        ? `${t('items.meta.doneBy')} ${item.doneByEmail || t('auth.anonymous')}`
+                        : `${t('items.meta.createdBy')} ${
+                            item.createdByEmail || t('auth.anonymous')
+                          }`}
+                    </Text>
+                  </View>
                 )}
               </TouchableOpacity>
               <View style={styles.itemActions}>
@@ -727,6 +747,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     flexShrink: 1,
     ...(Platform.OS === 'web' ? { wordBreak: 'break-all' } : null),
+  },
+  itemTextBlock: {
+    flex: 1,
+  },
+  itemMeta: {
+    marginTop: 2,
+    fontSize: 12,
+    lineHeight: 14,
   },
   itemTextInput: {
     flex: 1,

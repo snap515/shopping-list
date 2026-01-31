@@ -122,6 +122,10 @@ export default {
     renameTitle: 'Переименовать список',
   },
   items: {
+    meta: {
+      createdBy: 'Добавил:',
+      doneBy: 'Отметил:',
+    },
     add: {
       empty: 'Введите товар.',
       error: 'Не удалось добавить товар.',
