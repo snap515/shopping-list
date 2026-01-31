@@ -1,4 +1,4 @@
-# AGENTS
+﻿# AGENTS
 
 This file guides contributors and agents working on the shopping-list app.
 
