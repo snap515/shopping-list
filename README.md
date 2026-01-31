@@ -371,6 +371,9 @@ SL-70 Показать офлайн-статус при ошибке listener (u
 SL-71 добавить короткие тості после ключевіх действий(создание, приглашение, выход)
 
 
+SL-72 починить удаление списка для веб [DONE]
+
+
 ## Push Notifications (SL-45)
 Client:
 - Uses `expo-notifications` to request permission and store Expo push tokens on `users/{uid}`.
