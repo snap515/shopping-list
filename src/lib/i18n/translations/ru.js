@@ -56,6 +56,7 @@ export default {
     deleted: {
       title: 'Список удален',
       message: 'Этот список был удален.',
+      messageWithOwner: 'Список "%{name}" был удален пользователем %{owner}.',
     },
     manage: {
       action: 'Управление',

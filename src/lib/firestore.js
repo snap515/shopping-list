@@ -78,14 +78,18 @@ export const leaveList = async ({ listId, userUid }) => {
   });
 };
 
-export const subscribeToList = (listId, onChange) =>
-  onSnapshot(doc(db, 'lists', listId), (snapshot) => {
-    if (!snapshot.exists()) {
-      onChange(null);
-      return;
-    }
-    onChange({ id: snapshot.id, ...snapshot.data() });
-  });
+export const subscribeToList = (listId, onChange, onError) =>
+  onSnapshot(
+    doc(db, 'lists', listId),
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        onChange(null);
+        return;
+      }
+      onChange({ id: snapshot.id, ...snapshot.data() });
+    },
+    onError
+  );
 
 export const getUsersByIds = async (uids) => {
   const uniqueIds = Array.from(new Set(uids)).filter(Boolean);
@@ -180,15 +184,19 @@ export const acceptInvite = async ({ inviteId, listId, userUid, userEmail }) => 
 export const declineInvite = (inviteId) =>
   updateDoc(doc(db, 'invites', inviteId), { status: 'declined' });
 
-export const subscribeToListItems = (listId, onChange) => {
+export const subscribeToListItems = (listId, onChange, onError) => {
   const itemsQuery = query(listItemsCollection(listId));
-  return onSnapshot(itemsQuery, (snapshot) => {
-    const items = snapshot.docs.map((docSnap) => ({
-      id: docSnap.id,
-      ...docSnap.data(),
-    }));
-    onChange(items);
-  });
+  return onSnapshot(
+    itemsQuery,
+    (snapshot) => {
+      const items = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }));
+      onChange(items);
+    },
+    onError
+  );
 };
 
 export const addListItem = async ({ listId, text, createdByUid }) =>

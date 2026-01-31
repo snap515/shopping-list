@@ -12,6 +12,7 @@ export default function ListInfoScreen({ route, navigation }) {
   const [listName, setListName] = useState('');
   const [members, setMembers] = useState([]);
   const [listOwnerUid, setListOwnerUid] = useState('');
+  const [listOwnerEmail, setListOwnerEmail] = useState('');
   const [listExists, setListExists] = useState(true);
   const [hasShownDeletedNotice, setHasShownDeletedNotice] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -43,25 +44,35 @@ export default function ListInfoScreen({ route, navigation }) {
       return undefined;
     }
 
-    const unsubscribe = subscribeToList(listId, (listDoc) => {
-      if (!listDoc) {
-        setMembers([]);
-        setListExists(false);
-        return;
-      }
+    const unsubscribe = subscribeToList(
+      listId,
+      (listDoc) => {
+        if (!listDoc) {
+          setMembers([]);
+          setListExists(false);
+          return;
+        }
 
-      setListExists(true);
-      setListName(listDoc.name || '');
-      setRenameValue(listDoc.name || '');
-      setListOwnerUid(listDoc.ownerUid);
-      const memberUids = listDoc.memberUids || [];
-      const memberEmails = listDoc.memberEmails || {};
-      const nextMembers = memberUids.map((uid) => ({
-        id: uid,
-        email: memberEmails[uid],
-      }));
-      setMembers(nextMembers);
-    });
+        setListExists(true);
+        setListName(listDoc.name || '');
+        setRenameValue(listDoc.name || '');
+        setListOwnerUid(listDoc.ownerUid);
+        const memberUids = listDoc.memberUids || [];
+        const memberEmails = listDoc.memberEmails || {};
+        setListOwnerEmail(memberEmails[listDoc.ownerUid] || '');
+        const nextMembers = memberUids.map((uid) => ({
+          id: uid,
+          email: memberEmails[uid],
+        }));
+        setMembers(nextMembers);
+      },
+      (err) => {
+        if (err?.code === 'permission-denied') {
+          setMembers([]);
+          setListExists(false);
+        }
+      }
+    );
 
     unsubscribeRef.current = unsubscribe;
     return () => {
@@ -77,9 +88,13 @@ export default function ListInfoScreen({ route, navigation }) {
 
     if (!hasShownDeletedNotice) {
       setHasShownDeletedNotice(true);
-      Alert.alert(t('lists.deleted.title'), t('lists.deleted.message'), [
-        { text: t('common.ok') },
-      ]);
+      const name = listName || t('listDetails.title');
+      const owner = listOwnerEmail || '';
+      const message =
+        owner
+          ? t('lists.deleted.messageWithOwner', { name, owner })
+          : t('lists.deleted.message');
+      Alert.alert(t('lists.deleted.title'), message, [{ text: t('common.ok') }]);
     }
 
     if (navigation?.canGoBack()) {

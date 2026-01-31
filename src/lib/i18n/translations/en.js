@@ -56,6 +56,7 @@ export default {
     deleted: {
       title: 'List deleted',
       message: 'This list was deleted.',
+      messageWithOwner: 'List "%{name}" was deleted by %{owner}.',
     },
     manage: {
       action: 'Manage',
