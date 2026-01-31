@@ -40,4 +40,5 @@ yarn-error.*
 # generated native folders
 /ios
 /android
-keys/*.p8README.md
+keys/*.p8
+README.md
