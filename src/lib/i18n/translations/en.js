@@ -122,6 +122,10 @@ export default {
     renameTitle: 'Rename list',
   },
   items: {
+    meta: {
+      createdBy: 'Created by:',
+      doneBy: 'Done by:',
+    },
     add: {
       empty: 'Enter an item.',
       error: 'Could not add the item.',
