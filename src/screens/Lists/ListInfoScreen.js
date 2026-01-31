@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { auth } from '../../lib/firebase';
 import { createInvite, deleteList, leaveList, renameList, subscribeToList } from '../../lib/firestore';
@@ -172,6 +172,18 @@ export default function ListInfoScreen({ route, navigation }) {
         setIsDeleting(false);
       }
     };
+
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(
+        `${t('lists.delete.title')}\n${t('lists.delete.message', {
+          name: listName || t('listDetails.title'),
+        })}`
+      );
+      if (confirmed) {
+        runDelete();
+      }
+      return;
+    }
 
     Alert.alert(
       t('lists.delete.title'),
