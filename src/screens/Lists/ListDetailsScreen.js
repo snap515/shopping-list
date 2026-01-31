@@ -31,6 +31,7 @@ export default function ListDetailsScreen({ route, navigation }) {
   const [savingEditId, setSavingEditId] = useState(null);
   const [isClearing, setIsClearing] = useState(false);
   const [listOwnerUid, setListOwnerUid] = useState(ownerUid);
+  const [listOwnerEmail, setListOwnerEmail] = useState('');
   const [currentListName, setCurrentListName] = useState(listName || '');
   const [listExists, setListExists] = useState(true);
   const [hasShownDeletedNotice, setHasShownDeletedNotice] = useState(false);
@@ -53,7 +54,11 @@ export default function ListDetailsScreen({ route, navigation }) {
       return undefined;
     }
 
-    return subscribeToListItems(listId, setItems);
+    return subscribeToListItems(listId, setItems, (err) => {
+      if (err?.code === 'permission-denied') {
+        setListExists(false);
+      }
+    });
   }, [listId, listExists]);
 
   useEffect(() => {
@@ -61,7 +66,9 @@ export default function ListDetailsScreen({ route, navigation }) {
       return undefined;
     }
 
-    return subscribeToList(listId, (listDoc) => {
+    return subscribeToList(
+      listId,
+      (listDoc) => {
       if (!listDoc) {
         setListExists(false);
         return;
@@ -70,7 +77,15 @@ export default function ListDetailsScreen({ route, navigation }) {
       setListExists(true);
       setListOwnerUid(listDoc.ownerUid);
       setCurrentListName(listDoc.name || '');
-    });
+      const memberEmails = listDoc.memberEmails || {};
+      setListOwnerEmail(memberEmails[listDoc.ownerUid] || '');
+      },
+      (err) => {
+        if (err?.code === 'permission-denied') {
+          setListExists(false);
+        }
+      }
+    );
   }, [listId]);
 
   useEffect(() => {
@@ -80,9 +95,13 @@ export default function ListDetailsScreen({ route, navigation }) {
 
     if (!hasShownDeletedNotice) {
       setHasShownDeletedNotice(true);
-      Alert.alert(t('lists.deleted.title'), t('lists.deleted.message'), [
-        { text: t('common.ok') },
-      ]);
+      const name = currentListName || listName || t('listDetails.title');
+      const owner = listOwnerEmail || '';
+      const message =
+        owner
+          ? t('lists.deleted.messageWithOwner', { name, owner })
+          : t('lists.deleted.message');
+      Alert.alert(t('lists.deleted.title'), message, [{ text: t('common.ok') }]);
     }
 
     if (navigation?.canGoBack()) {

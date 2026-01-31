@@ -53,14 +53,15 @@ export default {
   },
   lists: {
     deleted: {
-    manage: {
-    details: {
-      action: 'Einstellungen',
+      title: 'Liste geloescht',
+      message: 'Diese Liste wurde geloescht.',
+      messageWithOwner: 'Liste "%{name}" wurde von %{owner} geloescht.',
     },
+    manage: {
       action: 'Verwalten',
     },
-      title: 'Liste gel?scht',
-      message: 'Diese Liste wurde gel?scht.',
+    details: {
+      action: 'Einstellungen',
     },
     title: 'Meine Listen',
     create: {
