@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ListsScreen from '../screens/Lists/ListsScreen.js';
 import InvitesScreen from '../screens/Invites/InvitesScreen.js';
 import SettingsScreen from '../screens/Settings/SettingsScreen.js';
+import TemplatesScreen from '../screens/Templates/TemplatesScreen.js';
 import { t } from '../lib/i18n';
 import { useLocale } from '../lib/i18n/LocaleProvider';
 import { useTheme } from '../lib/theme/ThemeProvider';
@@ -17,6 +18,7 @@ export default function AppTabs() {
     () => ({
       Lists: t('tabs.lists'),
       Invites: t('tabs.invites'),
+      Templates: t('tabs.templates'),
       Settings: t('tabs.settings'),
     }),
     [locale],
@@ -35,6 +37,10 @@ export default function AppTabs() {
                 ? focused
                   ? 'mail'
                   : 'mail-outline'
+                : route.name === 'Templates'
+                  ? focused
+                    ? 'book'
+                    : 'book-outline'
                 : focused
                   ? 'settings'
                   : 'settings-outline';
@@ -55,6 +61,11 @@ export default function AppTabs() {
         name="Invites"
         component={InvitesScreen}
         options={{ title: labels.Invites, tabBarLabel: labels.Invites }}
+      />
+      <Tab.Screen
+        name="Templates"
+        component={TemplatesScreen}
+        options={{ title: labels.Templates, tabBarLabel: labels.Templates }}
       />
       <Tab.Screen
         name="Settings"

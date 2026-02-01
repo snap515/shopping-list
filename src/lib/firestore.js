@@ -23,6 +23,7 @@ import { db } from './firebase';
 export const usersCollection = collection(db, 'users');
 export const listsCollection = collection(db, 'lists');
 export const invitesCollection = collection(db, 'invites');
+export const recipesCollection = collection(db, 'recipes');
 
 export const listItemsCollection = (listId) =>
   collection(db, 'lists', listId, 'items');
@@ -56,6 +57,17 @@ export const subscribeToUserLists = (uid, onChange) => {
   });
 };
 
+export const subscribeToUserRecipes = (uid, onChange) => {
+  const recipesQuery = query(recipesCollection, where('ownerUid', '==', uid));
+  return onSnapshot(recipesQuery, (snapshot) => {
+    const recipes = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }));
+    onChange(recipes);
+  });
+};
+
 export const createList = async ({ name, ownerUid, ownerEmail }) =>
   addDoc(listsCollection, {
     name,
@@ -69,6 +81,65 @@ export const renameList = (listId, name) =>
   updateDoc(doc(db, 'lists', listId), { name });
 
 export const deleteList = (listId) => deleteDoc(doc(db, 'lists', listId));
+
+export const createListWithItems = async ({ name, items, ownerUid, ownerEmail }) => {
+  const listRef = doc(listsCollection);
+  await setDoc(listRef, {
+    name,
+    ownerUid,
+    memberUids: [ownerUid],
+    memberEmails: ownerEmail ? { [ownerUid]: ownerEmail } : {},
+    createdAt: serverTimestamp(),
+  });
+
+  if (items && items.length > 0) {
+    const batch = writeBatch(db);
+    items.forEach((itemText) => {
+      const itemRef = doc(listItemsCollection(listRef.id));
+      batch.set(itemRef, {
+        text: itemText,
+        done: false,
+        createdAt: serverTimestamp(),
+        createdByUid: ownerUid,
+        ...(ownerEmail ? { createdByEmail: ownerEmail } : {}),
+      });
+    });
+    await batch.commit();
+  }
+
+  return listRef.id;
+};
+
+export const addItemsToList = async ({ listId, items, createdByUid, createdByEmail }) => {
+  const batch = writeBatch(db);
+  (items || []).forEach((itemText) => {
+    const itemRef = doc(listItemsCollection(listId));
+    batch.set(itemRef, {
+      text: itemText,
+      done: false,
+      createdAt: serverTimestamp(),
+      createdByUid,
+      ...(createdByEmail ? { createdByEmail } : {}),
+    });
+  });
+  await batch.commit();
+};
+
+export const createRecipe = async ({ name, items, ownerUid }) =>
+  addDoc(recipesCollection, {
+    name,
+    items: items || [],
+    ownerUid,
+    createdAt: serverTimestamp(),
+  });
+
+export const deleteRecipe = (recipeId) => deleteDoc(doc(db, 'recipes', recipeId));
+
+export const updateRecipeName = (recipeId, name) =>
+  updateDoc(doc(db, 'recipes', recipeId), { name });
+
+export const updateRecipeItems = (recipeId, items) =>
+  updateDoc(doc(db, 'recipes', recipeId), { items: items || [] });
 
 export const leaveList = async ({ listId, userUid }) => {
   const listRef = doc(db, 'lists', listId);
