@@ -9,6 +9,7 @@ import {
   documentId,
   getDoc,
   getDocs,
+  increment,
   onSnapshot,
   query,
   runTransaction,
@@ -24,6 +25,9 @@ export const usersCollection = collection(db, 'users');
 export const listsCollection = collection(db, 'lists');
 export const invitesCollection = collection(db, 'invites');
 export const recipesCollection = collection(db, 'recipes');
+export const templatesCollection = collection(db, 'templates');
+export const templateSetsCollection = (templateId) =>
+  collection(db, 'templates', templateId, 'sets');
 
 export const listItemsCollection = (listId) =>
   collection(db, 'lists', listId, 'items');
@@ -65,6 +69,17 @@ export const subscribeToUserRecipes = (uid, onChange) => {
       ...docSnap.data(),
     }));
     onChange(recipes);
+  });
+};
+
+export const subscribeToUserTemplates = (uid, onChange) => {
+  const templatesQuery = query(templatesCollection, where('ownerUid', '==', uid));
+  return onSnapshot(templatesQuery, (snapshot) => {
+    const templates = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }));
+    onChange(templates);
   });
 };
 
@@ -140,6 +155,57 @@ export const updateRecipeName = (recipeId, name) =>
 
 export const updateRecipeItems = (recipeId, items) =>
   updateDoc(doc(db, 'recipes', recipeId), { items: items || [] });
+
+export const createTemplate = async ({ name, ownerUid }) =>
+  addDoc(templatesCollection, {
+    name,
+    ownerUid,
+    setCount: 0,
+    createdAt: serverTimestamp(),
+  });
+
+export const deleteTemplate = (templateId) => deleteDoc(doc(db, 'templates', templateId));
+
+export const updateTemplateName = (templateId, name) =>
+  updateDoc(doc(db, 'templates', templateId), { name });
+
+export const subscribeToTemplateSets = (templateId, onChange) =>
+  onSnapshot(templateSetsCollection(templateId), (snapshot) => {
+    const sets = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }));
+    onChange(sets);
+  });
+
+export const createTemplateSet = async ({ templateId, name, items }) => {
+  const setRef = doc(templateSetsCollection(templateId));
+  const templateRef = doc(db, 'templates', templateId);
+  const batch = writeBatch(db);
+  batch.set(setRef, {
+    name,
+    items: items || [],
+    createdAt: serverTimestamp(),
+  });
+  batch.update(templateRef, { setCount: increment(1) });
+  await batch.commit();
+  return setRef.id;
+};
+
+export const deleteTemplateSet = async (templateId, setId) => {
+  const setRef = doc(db, 'templates', templateId, 'sets', setId);
+  const templateRef = doc(db, 'templates', templateId);
+  const batch = writeBatch(db);
+  batch.delete(setRef);
+  batch.update(templateRef, { setCount: increment(-1) });
+  await batch.commit();
+};
+
+export const updateTemplateSetName = (templateId, setId, name) =>
+  updateDoc(doc(db, 'templates', templateId, 'sets', setId), { name });
+
+export const updateTemplateSetItems = (templateId, setId, items) =>
+  updateDoc(doc(db, 'templates', templateId, 'sets', setId), { items: items || [] });
 
 export const leaveList = async ({ listId, userUid }) => {
   const listRef = doc(db, 'lists', listId);

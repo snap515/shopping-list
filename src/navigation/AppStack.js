@@ -8,6 +8,12 @@ import RecipeDetailsScreen from '../screens/Templates/RecipeDetailsScreen.js';
 import RecipeEditorScreen from '../screens/Templates/RecipeEditorScreen.js';
 import RecipeAddToListScreen from '../screens/Templates/RecipeAddToListScreen.js';
 import RecipeCreateListScreen from '../screens/Templates/RecipeCreateListScreen.js';
+import TemplateEditorScreen from '../screens/Templates/TemplateEditorScreen.js';
+import TemplateSetsScreen from '../screens/Templates/TemplateSetsScreen.js';
+import TemplateSetEditorScreen from '../screens/Templates/TemplateSetEditorScreen.js';
+import TemplateSetDetailsScreen from '../screens/Templates/TemplateSetDetailsScreen.js';
+import TemplateSetAddToListScreen from '../screens/Templates/TemplateSetAddToListScreen.js';
+import TemplateSetCreateListScreen from '../screens/Templates/TemplateSetCreateListScreen.js';
 import LanguageScreen from '../screens/Settings/LanguageScreen.js';
 import { t } from '../lib/i18n';
 import { useLocale } from '../lib/i18n/LocaleProvider';
@@ -34,6 +40,36 @@ export default function AppStack() {
         name="Recipes"
         component={RecipesScreen}
         options={{ title: t('recipes.title'), headerBackTitle: t('tabs.templates') }}
+      />
+      <Stack.Screen
+        name="TemplateEditor"
+        component={TemplateEditorScreen}
+        options={{ title: t('templates.createTitle'), headerBackTitle: t('tabs.templates') }}
+      />
+      <Stack.Screen
+        name="TemplateSets"
+        component={TemplateSetsScreen}
+        options={{ title: t('templates.detailsTitle'), headerBackTitle: t('tabs.templates') }}
+      />
+      <Stack.Screen
+        name="TemplateSetEditor"
+        component={TemplateSetEditorScreen}
+        options={{ title: t('templates.createSetTitle'), headerBackTitle: t('templates.detailsTitle') }}
+      />
+      <Stack.Screen
+        name="TemplateSetDetails"
+        component={TemplateSetDetailsScreen}
+        options={{ title: t('templates.setDetailsTitle'), headerBackTitle: t('templates.detailsTitle') }}
+      />
+      <Stack.Screen
+        name="TemplateSetAddToList"
+        component={TemplateSetAddToListScreen}
+        options={{ title: t('templates.selectList'), headerBackTitle: t('templates.setDetailsTitle') }}
+      />
+      <Stack.Screen
+        name="TemplateSetCreateList"
+        component={TemplateSetCreateListScreen}
+        options={{ title: t('templates.createListTitle'), headerBackTitle: t('templates.setDetailsTitle') }}
       />
       <Stack.Screen
         name="RecipeEditor"
