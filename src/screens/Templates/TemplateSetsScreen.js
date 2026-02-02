@@ -1,55 +1,57 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, FlatList, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { auth } from '../../lib/firebase';
-import { deleteTemplate, subscribeToUserTemplates } from '../../lib/firestore';
+import { deleteTemplateSet, subscribeToTemplateSets, subscribeToUserTemplates } from '../../lib/firestore';
 import { t } from '../../lib/i18n';
 import { useLocale } from '../../lib/i18n/LocaleProvider';
 import { useTheme } from '../../lib/theme/ThemeProvider';
 import { useToast } from '../../lib/toast';
 
-export default function TemplatesScreen({ navigation }) {
+export default function TemplateSetsScreen({ route, navigation }) {
+  const { templateId } = route.params || {};
   const { theme } = useTheme();
   const { locale } = useLocale();
   const { showToast } = useToast();
   const numColumns = Platform.OS === 'web' ? 3 : 2;
-  const [templates, setTemplates] = useState([]);
-  const [deletingId, setDeletingId] = useState(null);
   const tileWidth = Platform.OS === 'web' ? '32%' : '48%';
+  const [template, setTemplate] = useState(null);
+  const [sets, setSets] = useState([]);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     const uid = auth.currentUser?.uid;
-    if (!uid) {
+    if (!uid || !templateId) {
       return undefined;
     }
-    return subscribeToUserTemplates(uid, setTemplates);
-  }, []);
+    return subscribeToUserTemplates(uid, (items) => {
+      const next = items.find((item) => item.id === templateId) || null;
+      setTemplate(next);
+    });
+  }, [templateId]);
+
+  useEffect(() => {
+    if (!templateId) {
+      return undefined;
+    }
+    return subscribeToTemplateSets(templateId, setSets);
+  }, [templateId]);
 
   const data = useMemo(
-    () => [{ id: 'add-template', type: 'add-template' }, ...templates.map((template) => ({ ...template, type: 'template' }))],
-    [templates]
+    () => [{ id: 'add-set', type: 'add-set' }, ...sets.map((set) => ({ ...set, type: 'set' }))],
+    [sets]
   );
 
-  const handlePress = (tile) => {
-    if (tile.type === 'add-template') {
-      navigation.navigate('TemplateEditor');
-      return;
-    }
-    if (tile.type === 'template') {
-      navigation.navigate('TemplateSets', { templateId: tile.id });
-    }
-  };
-
-  const handleDelete = (template) => {
+  const handleDelete = (setItem) => {
     const runDelete = async () => {
       if (deletingId) {
         return;
       }
-      setDeletingId(template.id);
+      setDeletingId(setItem.id);
       try {
-        await deleteTemplate(template.id);
-        showToast(t('templates.deleteToast', { name: template.name }));
+        await deleteTemplateSet(templateId, setItem.id);
+        showToast(t('templates.deleteSetToast', { name: setItem.name }));
       } catch (error) {
-        showToast(t('templates.deleteError'));
+        showToast(t('templates.deleteSetError'));
       } finally {
         setDeletingId(null);
       }
@@ -57,7 +59,7 @@ export default function TemplatesScreen({ navigation }) {
 
     if (Platform.OS === 'web') {
       const confirmed = window.confirm(
-        `${t('templates.deleteTitle')}\n${t('templates.deleteMessage', { name: template.name })}`
+        `${t('templates.deleteSetTitle')}\n${t('templates.deleteSetMessage', { name: setItem.name })}`
       );
       if (confirmed) {
         runDelete();
@@ -66,8 +68,8 @@ export default function TemplatesScreen({ navigation }) {
     }
 
     Alert.alert(
-      t('templates.deleteTitle'),
-      t('templates.deleteMessage', { name: template.name }),
+      t('templates.deleteSetTitle'),
+      t('templates.deleteSetMessage', { name: setItem.name }),
       [
         { text: t('common.cancel'), style: 'cancel' },
         { text: t('common.delete'), style: 'destructive', onPress: runDelete },
@@ -78,46 +80,50 @@ export default function TemplatesScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>{t('templates.title')}</Text>
+      <Text style={[styles.title, { color: theme.colors.text }]}>
+        {template?.name || t('templates.detailsTitle')}
+      </Text>
       <FlatList
         data={data}
         keyExtractor={(item) => item.id}
         numColumns={numColumns}
-        key={`tiles-${numColumns}`}
+        key={`sets-${numColumns}`}
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
-          if (item.type === 'add-template') {
+          if (item.type === 'add-set') {
             return (
               <TouchableOpacity
                 style={[
                   styles.tile,
-                  { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, width: tileWidth },
+                  { borderColor: theme.colors.border, backgroundColor: theme.colors.surface, width: tileWidth },
                 ]}
-                onPress={() => handlePress(item)}
+                onPress={() => navigation.navigate('TemplateSetEditor', { templateId })}
               >
-                <View style={[styles.tileImage, styles.addTileBody, { backgroundColor: theme.colors.background }]}>
+                <View style={[styles.tileBody, styles.addTileBody, { backgroundColor: theme.colors.background }]}>
                   <Text style={[styles.addTitle, { color: theme.colors.primary }]}>+</Text>
                 </View>
                 <View style={styles.tileFooter}>
                   <Text style={[styles.tileTitle, { color: theme.colors.text }]}>
-                    {t('templates.addTemplate')}
+                    {t('templates.addSet')}
                   </Text>
                 </View>
               </TouchableOpacity>
             );
           }
 
-          const count = typeof item.setCount === 'number' ? item.setCount : 0;
+          const count = Array.isArray(item.items) ? item.items.length : 0;
           return (
             <TouchableOpacity
               style={[
                 styles.tile,
-                { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, width: tileWidth },
+                { borderColor: theme.colors.border, backgroundColor: theme.colors.surface, width: tileWidth },
               ]}
-              onPress={() => handlePress(item)}
+              onPress={() =>
+                navigation.navigate('TemplateSetDetails', { templateId, setId: item.id })
+              }
             >
-              <View style={[styles.tileImage, { backgroundColor: theme.colors.background }]}>
+              <View style={[styles.tileBody, { backgroundColor: theme.colors.background }]}>
                 <TouchableOpacity
                   style={styles.deleteBadge}
                   onPress={() => handleDelete(item)}
@@ -141,6 +147,11 @@ export default function TemplatesScreen({ navigation }) {
             </TouchableOpacity>
           );
         }}
+        ListEmptyComponent={
+          <Text style={[styles.emptyText, { color: theme.colors.muted }]}>
+            {t('templates.setsEmpty')}
+          </Text>
+        }
       />
     </View>
   );
@@ -170,7 +181,7 @@ const styles = StyleSheet.create({
     padding: 12,
     minHeight: 140,
   },
-  tileImage: {
+  tileBody: {
     height: 90,
     borderRadius: 8,
     alignItems: 'flex-end',
@@ -203,5 +214,9 @@ const styles = StyleSheet.create({
   deleteText: {
     fontSize: 18,
     fontWeight: '700',
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
